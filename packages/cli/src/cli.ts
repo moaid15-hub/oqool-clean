@@ -208,8 +208,10 @@ program
         }));
 
         ui.stopSpinner();
-        ui.showProjectInfo(context.totalFiles, context.totalSize);
-        ui.showFilesList(context.files.map((f) => ({ path: f.path, size: f.size })));
+        // ui.showProjectInfo(context.totalFiles, context.totalSize);
+        ui.info(`المشروع: ${context.totalFiles} ملف، الحجم: ${context.totalSize} بايت`);
+        // ui.showFilesList(context.files.map((f) => ({ path: f.path, size: f.size })));
+        ui.printList(context.files.map((f) => `${f.path} (${f.size} bytes)`));
       }
 
       ui.startSpinner('جاري توليد الكود...');
@@ -224,7 +226,9 @@ program
       }
 
       ui.succeedSpinner('تم توليد الكود بنجاح!');
-      ui.showAIResponse(response.message, response.usedProvider);
+      // ui.showAIResponse(response.message, response.usedProvider);
+      ui.printSection(`AI Response (${response.usedProvider})`);
+      console.log(response.message);
 
       // استخراج الملفات من الرد
       const generatedFiles = fileManager.extractFilesFromResponse(response.message);
@@ -346,7 +350,7 @@ program
         enableLearning: true,
       });
 
-      ui.showBanner();
+      ui.printBanner();
 
       console.log('');
       console.log('');
@@ -427,7 +431,7 @@ program
     try {
       const fileManager = createFileManager();
       const structure = await fileManager.getDirectoryStructure(parseInt(options.depth));
-      ui.showProjectStructure(structure);
+      console.log(structure); // او استخدم ui.info(structure)
     } catch (error: any) {
       ui.error('فشل عرض البنية');
       console.error(chalk.red(error.message));

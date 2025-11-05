@@ -1,0 +1,591 @@
+// cli-agent.ts - استخدام UI مع AI Agents
+// ============================================
+// المثال: تفاعل احترافي مع الـ Agents
+// ============================================
+
+import { Command } from 'commander';
+import { ui } from './ui';
+import { UnifiedAIAdapter } from '@oqool/shared/ai-gateway';
+import {
+  ArchitectAgent,
+  DeveloperAgent,
+  ReviewerAgent,
+  SecurityAgent,
+  TesterAgent,
+  OptimizerAgent,
+  DocumenterAgent
+} from '@oqool/shared/agents';
+
+// ============================================
+// Agent Manager - إدارة الوكلاء
+// ============================================
+
+export class AgentManager {
+  private agents: Map<string, any>;
+  private aiAdapter: UnifiedAIAdapter;
+
+  constructor(config: any) {
+    this.aiAdapter = new UnifiedAIAdapter(config);
+    this.agents = new Map();
+    this.initializeAgents();
+  }
+
+  private initializeAgents(): void {
+    // Initialize all 20 agents
+    this.agents.set('architect', new ArchitectAgent(this.aiAdapter));
+    this.agents.set('developer', new DeveloperAgent(this.aiAdapter));
+    this.agents.set('reviewer', new ReviewerAgent(this.aiAdapter));
+    this.agents.set('security', new SecurityAgent(this.aiAdapter));
+    this.agents.set('tester', new TesterAgent(this.aiAdapter));
+    this.agents.set('optimizer', new OptimizerAgent(this.aiAdapter));
+    this.agents.set('documenter', new DocumenterAgent(this.aiAdapter));
+    // ... 13 more agents
+  }
+
+  getAgent(name: string): any {
+    return this.agents.get(name);
+  }
+
+  getAllAgents(): string[] {
+    return Array.from(this.agents.keys());
+  }
+}
+
+// ============================================
+// أمر: architect - مهندس معماري
+// ============================================
+
+export function registerArchitectCommand(program: Command, manager: AgentManager): void {
+  program
+    .command('architect <request>')
+    .description('🏗️  Design system architecture')
+    .option('-d, --detailed', 'Detailed architecture design')
+    .option('-o, --output <file>', 'Save design to file')
+    .action(async (request: string, options: any) => {
+      ui.printHeader(
+        '🏗️  Architect Agent',
+        'Designing scalable system architecture'
+      );
+
+      try {
+        const architect = manager.getAgent('architect');
+
+        // Show what we're doing
+        ui.printKeyValue({
+          'Request': request,
+          'Mode': options.detailed ? 'Detailed' : 'Standard',
+          'Output': options.output || 'Console only'
+        }, { indent: 2 });
+
+        ui.newLine();
+
+        // Design process
+        await ui.runSteps([
+          {
+            name: 'Analyzing requirements',
+            action: async () => {
+              // await architect.analyzeRequirements(request);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          },
+          {
+            name: 'Designing architecture',
+            action: async () => {
+              // await architect.designArchitecture();
+              await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+          },
+          {
+            name: 'Selecting tech stack',
+            action: async () => {
+              // await architect.selectTechStack();
+              await new Promise(resolve => setTimeout(resolve, 800));
+            }
+          },
+          {
+            name: 'Creating diagrams',
+            action: async () => {
+              // await architect.createDiagrams();
+              await new Promise(resolve => setTimeout(resolve, 600));
+            },
+            optional: true
+          }
+        ]);
+
+        // Show results
+        ui.printSection('Architecture Design');
+
+        ui.printBox(
+          `${chalk.bold('System Overview:')}\n\n` +
+          `• Microservices architecture\n` +
+          `• Event-driven communication\n` +
+          `• API Gateway pattern\n` +
+          `• Database per service\n` +
+          `• Cloud-native deployment`,
+          { color: 'cyan', padding: 2 }
+        );
+
+        // Tech Stack
+        ui.printSummary('Recommended Tech Stack', [
+          { label: 'Backend', value: 'Node.js + Express', color: 'green' },
+          { label: 'Database', value: 'PostgreSQL + Redis', color: 'blue' },
+          { label: 'Message Queue', value: 'RabbitMQ', color: 'cyan' },
+          { label: 'Container', value: 'Docker + Kubernetes', color: 'blue' },
+          { label: 'Cloud', value: 'AWS / GCP', color: 'cyan' }
+        ]);
+
+        // Components
+        console.log(chalk.cyan('📦 System Components:\n'));
+        ui.printNumberedList([
+          'API Gateway (handles routing, auth, rate limiting)',
+          'User Service (authentication, profiles, permissions)',
+          'Product Service (catalog, inventory, pricing)',
+          'Order Service (cart, checkout, order processing)',
+          'Payment Service (payment processing, refunds)',
+          'Notification Service (email, SMS, push notifications)'
+        ], { indent: 2 });
+
+        ui.newLine();
+        ui.printTip('Use: oqool developer "implement User Service" to start building');
+
+      } catch (error) {
+        ui.printError(
+          'Architecture design failed',
+          error instanceof Error ? error.message : String(error)
+        );
+      }
+    });
+}
+
+// ============================================
+// أمر: developer - مطور
+// ============================================
+
+export function registerDeveloperCommand(program: Command, manager: AgentManager): void {
+  program
+    .command('developer <task>')
+    .description('👨‍💻 Generate code for features')
+    .option('-l, --language <lang>', 'Programming language', 'typescript')
+    .option('-f, --framework <name>', 'Framework to use')
+    .action(async (task: string, options: any) => {
+      ui.printHeader(
+        '👨‍💻 Developer Agent',
+        'Generating production-ready code'
+      );
+
+      try {
+        const developer = manager.getAgent('developer');
+
+        ui.printKeyValue({
+          'Task': task,
+          'Language': options.language,
+          'Framework': options.framework || 'Auto-detect'
+        }, { indent: 2 });
+
+        ui.newLine();
+
+        // Development steps
+        ui.startSpinner('Understanding requirements...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        ui.succeedSpinner('Requirements analyzed');
+
+        ui.startSpinner('Designing solution...');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        ui.succeedSpinner('Solution designed');
+
+        ui.startSpinner('Generating code...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        ui.succeedSpinner('Code generated');
+
+        // Show generated code
+        ui.newLine();
+        ui.printSection('Generated Code');
+
+        const sampleCode = `
+// user.controller.ts
+import { Request, Response } from 'express';
+import { UserService } from './user.service';
+
+export class UserController {
+  private userService: UserService;
+
+  constructor() {
+    this.userService = new UserService();
+  }
+
+  async createUser(req: Request, res: Response) {
+    try {
+      const user = await this.userService.create(req.body);
+      res.status(201).json(user);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+}`;
+
+        ui.printCode(sampleCode, 'typescript');
+
+        // Files created
+        ui.printFileChanges([
+          { type: 'create', path: 'src/controllers/user.controller.ts', lines: 45 },
+          { type: 'create', path: 'src/services/user.service.ts', lines: 78 },
+          { type: 'create', path: 'src/models/user.model.ts', lines: 32 },
+          { type: 'create', path: 'src/validators/user.validator.ts', lines: 28 },
+          { type: 'modify', path: 'src/routes/index.ts', lines: 5 }
+        ]);
+
+        ui.printSuccess(
+          'Code generated successfully!',
+          '5 files created/modified with best practices'
+        );
+
+        ui.printNextSteps([
+          'Review the generated code',
+          'oqool tester "test user controller" - Generate tests',
+          'oqool reviewer "review user code" - Code review',
+          'oqool security "scan user code" - Security check'
+        ]);
+
+      } catch (error) {
+        ui.printError('Code generation failed', error instanceof Error ? error.message : String(error));
+      }
+    });
+}
+
+// ============================================
+// أمر: reviewer - مراجع الكود
+// ============================================
+
+export function registerReviewerCommand(program: Command, manager: AgentManager): void {
+  program
+    .command('reviewer <files...>')
+    .description('🔍 Deep code review with AI')
+    .option('-s, --strict', 'Strict review mode')
+    .option('--fix', 'Auto-fix issues when possible')
+    .action(async (files: string[], options: any) => {
+      ui.printHeader(
+        '🔍 Reviewer Agent',
+        'AI-powered code review and quality analysis'
+      );
+
+      try {
+        const reviewer = manager.getAgent('reviewer');
+
+        ui.printList(files, { bullet: '📄', indent: 2 });
+        ui.newLine();
+
+        // Review process
+        await ui.runSteps([
+          {
+            name: 'Analyzing code style',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 800));
+            }
+          },
+          {
+            name: 'Checking best practices',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          },
+          {
+            name: 'Finding potential bugs',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 1200));
+            }
+          },
+          {
+            name: 'Performance analysis',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 900));
+            }
+          },
+          {
+            name: 'Security scan',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 700));
+            }
+          }
+        ]);
+
+        // Review results
+        ui.printSummary('Review Results', [
+          { label: 'Files Reviewed', value: files.length, color: 'cyan' },
+          { label: 'Lines Analyzed', value: '2,456', color: 'cyan' },
+          { label: 'Critical Issues', value: '2', color: 'red' },
+          { label: 'Warnings', value: '8', color: 'yellow' },
+          { label: 'Suggestions', value: '15', color: 'blue' },
+          { label: 'Overall Score', value: '7.5/10', color: 'green' }
+        ]);
+
+        // Critical issues
+        ui.newLine();
+        console.log(chalk.red.bold('🚨 Critical Issues (2):\n'));
+        ui.printNumberedList([
+          'SQL Injection vulnerability in user.service.ts:45',
+          'Unhandled promise rejection in auth.controller.ts:78'
+        ], { indent: 2, color: 'red' });
+
+        // Warnings
+        ui.newLine();
+        console.log(chalk.yellow.bold('⚠️  Warnings (8):\n'));
+        ui.printNumberedList([
+          'Unused import in user.controller.ts:3',
+          'Console.log statement in production code',
+          'Missing error handling in login function',
+          'Inconsistent naming convention',
+          'Complex function exceeds 50 lines'
+        ].slice(0, 5), { indent: 2, color: 'yellow' });
+
+        // Suggestions
+        ui.newLine();
+        console.log(chalk.blue.bold('💡 Suggestions (15):\n'));
+        ui.printNumberedList([
+          'Use async/await instead of .then()',
+          'Extract repeated logic into helper function',
+          'Add JSDoc comments for public methods',
+          'Consider using dependency injection',
+          'Add input validation for all endpoints'
+        ].slice(0, 5), { indent: 2, color: 'blue' });
+
+        ui.newLine();
+
+        if (options.fix) {
+          ui.printInfo('Auto-fix will be applied for simple issues');
+          ui.printTip('Critical issues require manual review');
+        } else {
+          ui.printTip('Run with --fix to auto-fix simple issues');
+        }
+
+      } catch (error) {
+        ui.printError('Review failed', error instanceof Error ? error.message : String(error));
+      }
+    });
+}
+
+// ============================================
+// أمر: security - خبير أمان
+// ============================================
+
+export function registerSecurityCommand(program: Command, manager: AgentManager): void {
+  program
+    .command('security <target>')
+    .description('🛡️  Security analysis and vulnerability scan')
+    .option('-d, --deep', 'Deep security analysis')
+    .option('-r, --report <file>', 'Generate security report')
+    .action(async (target: string, options: any) => {
+      ui.printHeader(
+        '🛡️  Security Agent',
+        'Comprehensive security analysis'
+      );
+
+      try {
+        const security = manager.getAgent('security');
+
+        // Security scan
+        await ui.runSteps([
+          {
+            name: 'Scanning dependencies',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+          },
+          {
+            name: 'Analyzing code patterns',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 1200));
+            }
+          },
+          {
+            name: 'Checking authentication',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 800));
+            }
+          },
+          {
+            name: 'Validating input handling',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 900));
+            }
+          },
+          {
+            name: 'Testing for common vulnerabilities',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 1100));
+            }
+          }
+        ]);
+
+        // Security report
+        ui.printSummary('Security Scan Results', [
+          { label: 'Vulnerabilities Found', value: '3', color: 'red' },
+          { label: 'High Risk', value: '1', color: 'red' },
+          { label: 'Medium Risk', value: '2', color: 'yellow' },
+          { label: 'Low Risk', value: '0', color: 'green' },
+          { label: 'Dependencies Scanned', value: '47', color: 'cyan' },
+          { label: 'Security Score', value: '6.8/10', color: 'yellow' }
+        ]);
+
+        // Vulnerabilities
+        ui.newLine();
+        console.log(chalk.red.bold('🚨 High Risk Vulnerabilities:\n'));
+        
+        ui.printBox(
+          `${chalk.bold('SQL Injection')}\n` +
+          `Location: src/services/user.service.ts:45\n` +
+          `Severity: HIGH\n\n` +
+          `${chalk.yellow('Issue:')}\n` +
+          `Direct SQL query construction with user input\n\n` +
+          `${chalk.green('Fix:')}\n` +
+          `Use parameterized queries or ORM`,
+          { color: 'red', padding: 1 }
+        );
+
+        ui.newLine();
+        console.log(chalk.yellow.bold('⚠️  Medium Risk:\n'));
+        ui.printNumberedList([
+          'Outdated dependency: express@4.17.1 (known XSS vulnerability)',
+          'Weak password hashing algorithm (MD5)'
+        ], { indent: 2, color: 'yellow' });
+
+        ui.newLine();
+        ui.printNextSteps([
+          'Fix high-risk vulnerabilities immediately',
+          'Update dependencies with: npm update',
+          'oqool security --fix - Apply security patches',
+          'Generate detailed report: oqool security --report security.pdf'
+        ]);
+
+      } catch (error) {
+        ui.printError('Security scan failed', error instanceof Error ? error.message : String(error));
+      }
+    });
+}
+
+// ============================================
+// أمر: team - استخدام فريق كامل
+// ============================================
+
+export function registerTeamCommand(program: Command, manager: AgentManager): void {
+  program
+    .command('team <project>')
+    .description('🤖 Use full AI team to build project')
+    .action(async (project: string) => {
+      ui.printHeader(
+        '🤖 AI Team Mode',
+        'Full team of 20 AI agents working together'
+      );
+
+      try {
+        ui.printInfo(
+          'Assembling AI team...',
+          'Architect, Developer, Tester, Reviewer, Security, and more!'
+        );
+
+        ui.newLine();
+
+        // Show team
+        const team = [
+          { role: '🏗️  Architect', status: 'Ready', task: 'System design' },
+          { role: '👨‍💻 Backend Dev', status: 'Ready', task: 'API implementation' },
+          { role: '🎨 Frontend Dev', status: 'Ready', task: 'UI development' },
+          { role: '🧪 Tester', status: 'Ready', task: 'Test generation' },
+          { role: '🔍 Reviewer', status: 'Ready', task: 'Code review' },
+          { role: '🛡️  Security', status: 'Ready', task: 'Security scan' },
+          { role: '⚡ Optimizer', status: 'Ready', task: 'Performance tuning' },
+          { role: '📚 Documenter', status: 'Ready', task: 'Documentation' }
+        ];
+
+        ui.printTable(team, ['role', 'status', 'task']);
+
+        ui.newLine();
+        const confirmed = await ui.confirm('Start AI team collaboration?', true);
+
+        if (!confirmed) {
+          ui.printWarning('Team mode cancelled');
+          return;
+        }
+
+        // Team workflow
+        await ui.runSteps([
+          {
+            name: '🏗️  Architect designs system',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          },
+          {
+            name: '👨‍💻 Developers implement features',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 3000));
+            }
+          },
+          {
+            name: '🧪 Tester generates tests',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+          },
+          {
+            name: '🔍 Reviewer checks code quality',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 1200));
+            }
+          },
+          {
+            name: '🛡️  Security scans for vulnerabilities',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          },
+          {
+            name: '⚡ Optimizer improves performance',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 800));
+            }
+          },
+          {
+            name: '📚 Documenter writes docs',
+            action: async () => {
+              await new Promise(resolve => setTimeout(resolve, 600));
+            }
+          }
+        ]);
+
+        // Final results
+        ui.printSummary('Team Results', [
+          { label: 'Files Created', value: '47', color: 'green' },
+          { label: 'Tests Generated', value: '156', color: 'cyan' },
+          { label: 'Test Coverage', value: '92%', color: 'green' },
+          { label: 'Code Quality', value: 'A', color: 'green' },
+          { label: 'Security Score', value: '9.2/10', color: 'green' },
+          { label: 'Performance', value: 'Optimized', color: 'green' },
+          { label: 'Documentation', value: 'Complete', color: 'green' },
+          { label: 'Total Cost', value: '$2.34', color: 'cyan' },
+          { label: 'Time Saved', value: '~40 hours', color: 'yellow' }
+        ]);
+
+        ui.printSuccess(
+          'AI team completed the project!',
+          'Production-ready code with tests, docs, and security'
+        );
+
+      } catch (error) {
+        ui.printError('Team mode failed', error instanceof Error ? error.message : String(error));
+      }
+    });
+}
+
+// ============================================
+// Export commands registration
+// ============================================
+
+export function registerAgentCommands(program: Command, config: any): void {
+  const manager = new AgentManager(config);
+
+  registerArchitectCommand(program, manager);
+  registerDeveloperCommand(program, manager);
+  registerReviewerCommand(program, manager);
+  registerSecurityCommand(program, manager);
+  registerTeamCommand(program, manager);
+}
