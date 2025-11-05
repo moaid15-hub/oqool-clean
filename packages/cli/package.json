@@ -1,0 +1,75 @@
+{
+  "name": "@oqool/cli",
+  "version": "5.0.0",
+  "description": "AI Coding Agent CLI - منافس Cursor و Windsurf",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "oqool": "./bin/oqool.js",
+    "og": "./bin/og",
+    "ogr": "./bin/ogr",
+    "ogt": "./bin/ogt",
+    "ogg": "./bin/ogg"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "oqool",
+    "oqoolai",
+    "ai",
+    "code-generator",
+    "cli",
+    "arabic"
+  ],
+  "author": "Oqool AI Team",
+  "homepage": "https://oqoolai.com",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.67.0",
+    "@babel/parser": "^7.28.5",
+    "@babel/traverse": "^7.28.5",
+    "@babel/types": "^7.28.5",
+    "@oqool/shared": "*",
+    "axios": "^1.6.2",
+    "boxen": "^8.0.1",
+    "chalk": "^5.6.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^11.1.0",
+    "dotenv": "^17.2.3",
+    "fs-extra": "^11.3.2",
+    "glob": "^10.4.5",
+    "gradient-string": "^3.0.0",
+    "ignore": "^5.3.0",
+    "inquirer": "^9.3.8",
+    "ora": "^7.0.1",
+    "p-limit": "^5.0.0",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@types/babel__core": "^7.20.5",
+    "@types/babel__traverse": "^7.28.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.10.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

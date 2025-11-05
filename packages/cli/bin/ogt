@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+// ogt - اختصار لـ oqool test
+process.argv.splice(2, 0, 'test');
+require('./oqool.js');
