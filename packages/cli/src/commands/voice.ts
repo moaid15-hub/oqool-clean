@@ -1,16 +1,18 @@
 /**
  * Voice Command Handler
  * معالج الأوامر الصوتية
+ *
+ * TODO: Uncomment when whisper-client and ollama-client are implemented
  */
 
 import { Command } from 'commander';
-import { getWhisperClient } from '../../../shared/whisper-client';
-import { getOllamaClient } from '../../../shared/ollama-client';
+// import { getWhisperClient } from '../../../shared/whisper-client';
+// import { getOllamaClient } from '../../../shared/ollama-client';
 
 export function registerVoiceCommand(program: Command): void {
   const voice = program
     .command('voice')
-    .description('Voice commands using Whisper + Ollama');
+    .description('Voice commands using Whisper + Ollama (TODO: Implementation pending)');
 
   // Transcribe audio file
   voice
@@ -19,6 +21,9 @@ export function registerVoiceCommand(program: Command): void {
     .option('-m, --model <model>', 'Whisper model (tiny, base, small, medium, large)', 'base')
     .option('-l, --language <lang>', 'Language code (ar, en, etc.)', 'ar')
     .action(async (file, options) => {
+      console.log('⚠️  Voice command not yet implemented');
+      return;
+      /* TODO: Uncomment when whisper-client is implemented
       try {
         const whisper = getWhisperClient({
           model: options.model,
@@ -43,6 +48,7 @@ export function registerVoiceCommand(program: Command): void {
         console.error('❌ Error:', error.message);
         process.exit(1);
       }
+      */
     });
 
   // Voice command (record + transcribe + execute)
@@ -51,6 +57,9 @@ export function registerVoiceCommand(program: Command): void {
     .description('Execute voice command')
     .option('-d, --duration <seconds>', 'Recording duration', '5')
     .action(async (options) => {
+      console.log('⚠️  Voice command not yet implemented');
+      return;
+      /* TODO: Uncomment when clients are implemented
       try {
         const whisper = getWhisperClient();
         const ollama = getOllamaClient();
@@ -141,5 +150,6 @@ Examples:
         console.error('\n❌ Error:', error.message);
         process.exit(1);
       }
+      */
     });
 }

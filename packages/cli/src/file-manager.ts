@@ -168,6 +168,24 @@ export class FileManager {
     }
   }
 
+  // الحصول على قائمة بجميع الملفات (بدون محتوى)
+  async listFiles(): Promise<string[]> {
+    try {
+      const pattern = `**/*{${SUPPORTED_EXTENSIONS.join(',')}}`;
+      const filePaths = await glob(pattern, {
+        cwd: this.workingDir,
+        absolute: false,
+        ignore: DEFAULT_IGNORE_PATTERNS,
+      });
+
+      // تصفية بواسطة ignore
+      return filePaths.filter((p) => !this.ig.ignores(p));
+    } catch (error) {
+      console.error(chalk.red('❌ خطأ في سرد الملفات:'), error);
+      return [];
+    }
+  }
+
   // كتابة ملف
   async writeFile(filePath: string, content: string): Promise<boolean> {
     try {
@@ -184,6 +202,22 @@ export class FileManager {
       console.error(chalk.red(`❌ فشلت كتابة ${filePath}:`), error);
       return false;
     }
+  }
+
+  // إنشاء ملف جديد (مثل writeFile لكن أوضح للاستخدام)
+  async createFile(filePath: string, content: string): Promise<boolean> {
+    return await this.writeFile(filePath, content);
+  }
+
+  // تعديل ملف (للاستخدام مع changes object)
+  async editFile(filePath: string, changes: any): Promise<boolean> {
+    // This is a simplified implementation
+    // In a more advanced version, this would apply specific changes/patches
+    if (typeof changes === 'string') {
+      return await this.writeFile(filePath, changes);
+    }
+    console.warn(chalk.yellow('⚠️  editFile with complex changes not fully implemented'));
+    return false;
   }
 
   // حذف ملف

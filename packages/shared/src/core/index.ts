@@ -43,7 +43,29 @@ export * from './test-runner.js';
 
 // Authentication & Security
 export * from './auth.js';
+export {
+  EnhancedAuthService,
+  authService,
+  login as enhancedLogin,
+  logout as enhancedLogout,
+  getAPIKey as enhancedGetAPIKey,
+  type ProviderCredentials,
+  type UserSession,
+  type StoredCredentials
+} from './enhanced-auth.js'; // ✅ New - Enhanced auth with encryption (aliased to avoid conflicts)
 export * from './security-enhancements.js'; // ✅ Fixed - SecurityVulnerability
+
+// Request/Response Management (New Systems)
+export * from './rate-limiter.js'; // ✅ New - Rate limiting system
+export {
+  RequestValidator,
+  validateOperation,
+  BatchValidator,
+  DANGEROUS_PATTERNS,
+  PROTECTED_PATHS,
+  type ValidationResult as RequestValidationResult
+} from './request-validator.js'; // ✅ New - Request validation (aliased to avoid conflict)
+export * from './response-transformer.js'; // ✅ New - Response transformation
 
 // Code Analysis & Tools
 export * from './code-analyzer.js'; // ✅ Fixed - CodeAnalysisPattern

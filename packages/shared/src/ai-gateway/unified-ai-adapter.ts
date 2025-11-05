@@ -540,6 +540,35 @@ export class UnifiedAIAdapter {
 
     return costs;
   }
+
+  // ============================================
+  // 🔧 Compatibility Methods for Smart Chat
+  // ============================================
+
+  /**
+   * Complete method (wrapper for process)
+   * Used by Enhanced AI Adapter
+   */
+  async complete(options: {
+    message: string;
+    context: string;
+    history: Array<{ role: string; content: string }>;
+  }): Promise<{ text: string }> {
+    const response = await this.process(options.message, options.context);
+    return { text: response.response }; // Extract response string from AIResponse
+  }
+
+  /**
+   * Stream complete method (wrapper for processStream)
+   * Used by Enhanced AI Adapter and Smart Chat
+   */
+  async *streamComplete(options: {
+    message: string;
+    context: string;
+    history: Array<{ role: string; content: string }>;
+  }): AsyncGenerator<string> {
+    yield* this.processStream('coder', options.message, options.context);
+  }
 }
 
 export default UnifiedAIAdapter;
