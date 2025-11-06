@@ -19,12 +19,12 @@ export async function readFile(params: { path: string }): Promise<string> {
       path: params.path,
       content: content,
       lines: content.split('\n').length,
-      size: content.length,
+      size: content.length
     });
   } catch (error: any) {
     return JSON.stringify({
       success: false,
-      error: error.message,
+      error: error.message
     });
   }
 }
@@ -32,24 +32,27 @@ export async function readFile(params: { path: string }): Promise<string> {
 // ============================================
 // 📝 الأداة 2: كتابة ملف
 // ============================================
-export async function writeFile(params: { path: string; content: string }): Promise<string> {
+export async function writeFile(params: { 
+  path: string; 
+  content: string 
+}): Promise<string> {
   try {
     // إنشاء المجلد إذا لم يكن موجوداً
     const dir = path.dirname(params.path);
     await fs.ensureDir(dir);
-
+    
     // كتابة الملف
     await fs.writeFile(params.path, params.content, 'utf-8');
-
+    
     return JSON.stringify({
       success: true,
       path: params.path,
-      size: params.content.length,
+      size: params.content.length
     });
   } catch (error: any) {
     return JSON.stringify({
       success: false,
-      error: error.message,
+      error: error.message
     });
   }
 }
@@ -57,7 +60,7 @@ export async function writeFile(params: { path: string; content: string }): Prom
 // ============================================
 // 📂 الأداة 3: قراءة مجلد
 // ============================================
-export async function listDirectory(params: {
+export async function listDirectory(params: { 
   path: string;
   recursive?: boolean;
 }): Promise<string> {
@@ -67,19 +70,19 @@ export async function listDirectory(params: {
       const files = await glob('**/*', {
         cwd: params.path,
         nodir: false,
-        dot: true,
+        dot: true
       });
-
+      
       return JSON.stringify({
         success: true,
         path: params.path,
         items: files.slice(0, 100), // أول 100 ملف
-        total: files.length,
+        total: files.length
       });
     } else {
       // قراءة المجلد الحالي فقط
       const items = await fs.readdir(params.path);
-
+      
       // معلومات مفصلة عن كل عنصر
       const details = await Promise.all(
         items.map(async (item) => {
@@ -89,21 +92,21 @@ export async function listDirectory(params: {
             name: item,
             type: stats.isDirectory() ? 'directory' : 'file',
             size: stats.size,
-            modified: stats.mtime,
+            modified: stats.mtime
           };
         })
       );
-
+      
       return JSON.stringify({
         success: true,
         path: params.path,
-        items: details,
+        items: details
       });
     }
   } catch (error: any) {
     return JSON.stringify({
       success: false,
-      error: error.message,
+      error: error.message
     });
   }
 }
@@ -119,29 +122,29 @@ export async function editFile(params: {
   try {
     // قراءة الملف
     let content = await fs.readFile(params.path, 'utf-8');
-
+    
     // التعديل
     if (!content.includes(params.old_text)) {
       return JSON.stringify({
         success: false,
-        error: 'النص المطلوب تعديله غير موجود في الملف',
+        error: 'النص المطلوب تعديله غير موجود في الملف'
       });
     }
-
+    
     content = content.replace(params.old_text, params.new_text);
-
+    
     // حفظ الملف
     await fs.writeFile(params.path, content, 'utf-8');
-
+    
     return JSON.stringify({
       success: true,
       path: params.path,
-      message: 'تم التعديل بنجاح',
+      message: 'تم التعديل بنجاح'
     });
   } catch (error: any) {
     return JSON.stringify({
       success: false,
-      error: error.message,
+      error: error.message
     });
   }
 }
@@ -156,63 +159,57 @@ export async function executeCommand(params: {
 }): Promise<string> {
   return new Promise((resolve) => {
     const timeoutMs = params.timeout || 30000; // 30 ثانية افتراضياً
-
+    
     // تقسيم الأمر
     const parts = params.command.split(' ');
     const cmd = parts[0];
     const args = parts.slice(1);
-
-    const childProcess = spawn(cmd, args, {
+    
+    const process = spawn(cmd, args, {
       cwd: params.cwd || process.cwd(),
-      shell: true,
+      shell: true
     });
-
+    
     let stdout = '';
     let stderr = '';
-
-    childProcess.stdout?.on('data', (data: Buffer) => {
+    
+    process.stdout?.on('data', (data) => {
       stdout += data.toString();
     });
-
-    childProcess.stderr?.on('data', (data: Buffer) => {
+    
+    process.stderr?.on('data', (data) => {
       stderr += data.toString();
     });
-
+    
     // Timeout
     const timer = setTimeout(() => {
-      childProcess.kill();
-      resolve(
-        JSON.stringify({
-          success: false,
-          error: 'انتهى الوقت المسموح للأمر',
-          timeout: true,
-        })
-      );
+      process.kill();
+      resolve(JSON.stringify({
+        success: false,
+        error: 'انتهى الوقت المسموح للأمر',
+        timeout: true
+      }));
     }, timeoutMs);
-
-    childProcess.on('close', (code: number | null) => {
+    
+    process.on('close', (code) => {
       clearTimeout(timer);
-
-      resolve(
-        JSON.stringify({
-          success: code === 0,
-          command: params.command,
-          exitCode: code,
-          stdout: stdout.slice(0, 5000), // أول 5000 حرف
-          stderr: stderr.slice(0, 1000),
-        })
-      );
+      
+      resolve(JSON.stringify({
+        success: code === 0,
+        command: params.command,
+        exitCode: code,
+        stdout: stdout.slice(0, 5000), // أول 5000 حرف
+        stderr: stderr.slice(0, 1000)
+      }));
     });
-
-    childProcess.on('error', (error: Error) => {
+    
+    process.on('error', (error) => {
       clearTimeout(timer);
-
-      resolve(
-        JSON.stringify({
-          success: false,
-          error: error.message,
-        })
-      );
+      
+      resolve(JSON.stringify({
+        success: false,
+        error: error.message
+      }));
     });
   });
 }
@@ -230,48 +227,48 @@ export async function searchInFiles(params: {
     const files = await glob(fileGlob, {
       cwd: params.directory,
       nodir: true,
-      absolute: true,
+      absolute: true
     });
-
+    
     const results: Array<{
       file: string;
       matches: Array<{ line: number; text: string }>;
     }> = [];
-
+    
     for (const file of files.slice(0, 100)) {
       try {
         const content = await fs.readFile(file, 'utf-8');
         const lines = content.split('\n');
-
+        
         const matches = lines
           .map((line, index) => ({
             line: index + 1,
-            text: line,
+            text: line
           }))
-          .filter((item) => item.text.includes(params.pattern));
-
+          .filter(item => item.text.includes(params.pattern));
+        
         if (matches.length > 0) {
           results.push({
             file: path.relative(params.directory, file),
-            matches: matches.slice(0, 10), // أول 10 نتائج لكل ملف
+            matches: matches.slice(0, 10) // أول 10 نتائج لكل ملف
           });
         }
       } catch (error) {
         // تجاهل الملفات الثنائية أو غير القابلة للقراءة
       }
     }
-
+    
     return JSON.stringify({
       success: true,
       pattern: params.pattern,
       totalFiles: files.length,
       filesWithMatches: results.length,
-      results: results.slice(0, 20), // أول 20 ملف
+      results: results.slice(0, 20) // أول 20 ملف
     });
   } catch (error: any) {
     return JSON.stringify({
       success: false,
-      error: error.message,
+      error: error.message
     });
   }
 }
@@ -288,11 +285,11 @@ export const TOOL_DEFINITIONS = [
       properties: {
         path: {
           type: 'string',
-          description: 'المسار الكامل للملف',
-        },
+          description: 'المسار الكامل للملف'
+        }
       },
-      required: ['path'],
-    },
+      required: ['path']
+    }
   },
   {
     name: 'write_file',
@@ -302,15 +299,15 @@ export const TOOL_DEFINITIONS = [
       properties: {
         path: {
           type: 'string',
-          description: 'المسار الكامل للملف',
+          description: 'المسار الكامل للملف'
         },
         content: {
           type: 'string',
-          description: 'المحتوى المراد كتابته',
-        },
+          description: 'المحتوى المراد كتابته'
+        }
       },
-      required: ['path', 'content'],
-    },
+      required: ['path', 'content']
+    }
   },
   {
     name: 'list_directory',
@@ -320,16 +317,16 @@ export const TOOL_DEFINITIONS = [
       properties: {
         path: {
           type: 'string',
-          description: 'مسار المجلد',
+          description: 'مسار المجلد'
         },
         recursive: {
           type: 'boolean',
           description: 'قراءة متداخلة للمجلدات الفرعية',
-          default: false,
-        },
+          default: false
+        }
       },
-      required: ['path'],
-    },
+      required: ['path']
+    }
   },
   {
     name: 'edit_file',
@@ -339,19 +336,19 @@ export const TOOL_DEFINITIONS = [
       properties: {
         path: {
           type: 'string',
-          description: 'مسار الملف',
+          description: 'مسار الملف'
         },
         old_text: {
           type: 'string',
-          description: 'النص المراد استبداله',
+          description: 'النص المراد استبداله'
         },
         new_text: {
           type: 'string',
-          description: 'النص الجديد',
-        },
+          description: 'النص الجديد'
+        }
       },
-      required: ['path', 'old_text', 'new_text'],
-    },
+      required: ['path', 'old_text', 'new_text']
+    }
   },
   {
     name: 'execute_command',
@@ -361,19 +358,19 @@ export const TOOL_DEFINITIONS = [
       properties: {
         command: {
           type: 'string',
-          description: 'الأمر المراد تنفيذه',
+          description: 'الأمر المراد تنفيذه'
         },
         cwd: {
           type: 'string',
-          description: 'مسار التنفيذ (اختياري)',
+          description: 'مسار التنفيذ (اختياري)'
         },
         timeout: {
           type: 'number',
-          description: 'الوقت الأقصى بالميلي ثانية (افتراضي: 30000)',
-        },
+          description: 'الوقت الأقصى بالميلي ثانية (افتراضي: 30000)'
+        }
       },
-      required: ['command'],
-    },
+      required: ['command']
+    }
   },
   {
     name: 'search_in_files',
@@ -383,27 +380,30 @@ export const TOOL_DEFINITIONS = [
       properties: {
         pattern: {
           type: 'string',
-          description: 'النص المراد البحث عنه',
+          description: 'النص المراد البحث عنه'
         },
         directory: {
           type: 'string',
-          description: 'المجلد المراد البحث فيه',
+          description: 'المجلد المراد البحث فيه'
         },
         filePattern: {
           type: 'string',
           description: 'نمط الملفات (مثل: **/*.ts)',
-          default: '**/*',
-        },
+          default: '**/*'
+        }
       },
-      required: ['pattern', 'directory'],
-    },
-  },
+      required: ['pattern', 'directory']
+    }
+  }
 ];
 
 // ============================================
 // ⚙️ تنفيذ الأداة
 // ============================================
-export async function executeTool(toolName: string, toolInput: any): Promise<string> {
+export async function executeTool(
+  toolName: string, 
+  toolInput: any
+): Promise<string> {
   switch (toolName) {
     case 'read_file':
       return await readFile(toolInput);
@@ -420,7 +420,7 @@ export async function executeTool(toolName: string, toolInput: any): Promise<str
     default:
       return JSON.stringify({
         success: false,
-        error: `أداة غير معروفة: ${toolName}`,
+        error: `أداة غير معروفة: ${toolName}`
       });
   }
 }
