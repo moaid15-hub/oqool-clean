@@ -1,5 +1,41 @@
 import { UnifiedMessage, UnifiedTool, UnifiedResponse } from './unified-types.interface';
 
+// Re-export UnifiedResponse for router use
+export { UnifiedResponse } from './unified-types.interface';
+
+// Export types needed by router
+export interface UnifiedRequest {
+  messages: UnifiedMessage[];
+  tools?: UnifiedTool[];
+  options?: RequestOptions;
+}
+
+export interface RequestOptions {
+  temperature?: number;
+  maxTokens?: number;
+  topP?: number;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
+  stop?: string[];
+  model?: string;
+}
+
+export interface ProviderConfig {
+  name: string;
+  apiKey: string;
+  endpoint?: string;
+  model?: string;
+  priority?: number;
+  enabled?: boolean;
+}
+
+export interface RoutingDecision {
+  provider: string;
+  reason: string;
+  confidence: number;
+  alternativeProviders: string[];
+}
+
 export interface IAIProvider {
   // 'DH8'&A 'D#3'3J)
   chat(messages: UnifiedMessage[]): Promise<UnifiedResponse>;

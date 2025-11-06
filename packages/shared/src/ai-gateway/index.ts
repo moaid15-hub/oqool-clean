@@ -5,12 +5,12 @@
 // Main Unified Adapter with all types
 export {
   UnifiedAIAdapterWithTools,
-  AIProvider,
-  Message,
-  UnifiedToolDefinition,
-  ToolCall,
-  UnifiedRequest,
-  UnifiedResponse
+  type AIProvider,
+  type Message,
+  type UnifiedToolDefinition,
+  type ToolCall,
+  type UnifiedRequest,
+  type UnifiedResponse
 } from './unified-ai-adapter.js';
 
 // Alias for backward compatibility

@@ -85,8 +85,8 @@ export * from './cloud-learning-sync.js';
 export * from './collaborative-features.js';
 export {
   TeamCollaboration,
-  SharedSolution,
-  TeamStats
+  type SharedSolution,
+  type TeamStats
 } from './team-collaboration.js'; // Export specific items to avoid TeamMember conflict
 export { TeamMember as CollabTeamMember } from './team-collaboration.js';
 
@@ -133,7 +133,7 @@ export {
   writeFile as writeFileOld
 } from './tools-old.js';
 // Planner exports with alias to avoid Task conflict
-export { Task as PlannerTask, Plan, IntelligentPlanner } from './planner.js';
+export { Task as PlannerTask, type Plan, IntelligentPlanner } from './planner.js';
 
 // UI & Interface
 export * from './ui.js';

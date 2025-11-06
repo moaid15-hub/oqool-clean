@@ -181,4 +181,40 @@ export class ClaudeAdapter extends BaseAdapter {
   private normalizeError(error: any): Error {
     return ErrorHandler.normalizeError(error, 'claude');
   }
+
+  // تنفيذ الدوال المطلوبة من IAIProvider
+  async validate(): Promise<boolean> {
+    try {
+      // اختبار بسيط للتحقق من صحة API Key
+      const response = await this.client.messages.create({
+        model: this.defaultModel,
+        max_tokens: 10,
+        messages: [{ role: 'user', content: 'test' }]
+      });
+      return !!response;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  estimateCost(messages: any[]): { estimatedInputTokens: number; estimatedOutputTokens: number; estimatedCost: number; currency: string } {
+    // تقدير بسيط: ~4 حرف = 1 token
+    const totalChars = messages.reduce((sum, msg) => sum + (msg.content?.length || 0), 0);
+    const estimatedInputTokens = Math.ceil(totalChars / 4);
+    const estimatedOutputTokens = Math.ceil(estimatedInputTokens * 0.5); // افتراض الرد نصف حجم السؤال
+
+    const pricing = this.getPricing();
+    const modelPricing = pricing.modelPricing[this.defaultModel] || { input: 0.25, output: 1.25 };
+
+    const estimatedCost =
+      (estimatedInputTokens * modelPricing.input / 1_000_000) +
+      (estimatedOutputTokens * modelPricing.output / 1_000_000);
+
+    return {
+      estimatedInputTokens,
+      estimatedOutputTokens,
+      estimatedCost,
+      currency: 'USD'
+    };
+  }
 }

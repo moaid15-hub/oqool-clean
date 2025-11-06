@@ -47,4 +47,31 @@ export class GeminiAdapter extends BaseAdapter {
       }
     };
   }
+
+  async validate(): Promise<boolean> {
+    try {
+      const result = await this.model.generateContent('test');
+      return !!result;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  estimateCost(messages: any[]): { estimatedInputTokens: number; estimatedOutputTokens: number; estimatedCost: number; currency: string } {
+    const totalChars = messages.reduce((sum, msg) => sum + (msg.content?.length || 0), 0);
+    const estimatedInputTokens = Math.ceil(totalChars / 4);
+    const estimatedOutputTokens = Math.ceil(estimatedInputTokens * 0.5);
+
+    const pricing = this.getPricing();
+    const estimatedCost =
+      (estimatedInputTokens * pricing.inputCostPerToken) +
+      (estimatedOutputTokens * pricing.outputCostPerToken);
+
+    return {
+      estimatedInputTokens,
+      estimatedOutputTokens,
+      estimatedCost,
+      currency: 'USD'
+    };
+  }
 }

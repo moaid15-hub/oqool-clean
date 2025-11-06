@@ -19,5 +19,17 @@
     "types": []
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "src/core/cli-agent.ts", "src/core/cli.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.demo.ts",
+    "**/__tests__/**",
+    "src/core/cli-agent.ts",
+    "src/core/cli.ts",
+    "src/core/god-mode.ts",
+    "src/ai-providers/**",
+    "src/agents/**"
+  ]
 }

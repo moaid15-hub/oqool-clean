@@ -172,4 +172,43 @@ export class DeepSeekAdapter extends BaseAdapter {
   private normalizeError(error: any): Error {
     return ErrorHandler.normalizeError(error, 'deepseek');
   }
+
+  // تنفيذ الدوال المطلوبة من IAIProvider
+  async validate(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify({
+          model: this.defaultModel,
+          messages: [{ role: 'user', content: 'test' }],
+          max_tokens: 10
+        })
+      });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  estimateCost(messages: any[]): { estimatedInputTokens: number; estimatedOutputTokens: number; estimatedCost: number; currency: string } {
+    const totalChars = messages.reduce((sum, msg) => sum + (msg.content?.length || 0), 0);
+    const estimatedInputTokens = Math.ceil(totalChars / 4);
+    const estimatedOutputTokens = Math.ceil(estimatedInputTokens * 0.5);
+
+    const pricing = this.getPricing();
+    const estimatedCost =
+      (estimatedInputTokens * pricing.inputCostPerToken) +
+      (estimatedOutputTokens * pricing.outputCostPerToken);
+
+    return {
+      estimatedInputTokens,
+      estimatedOutputTokens,
+      estimatedCost,
+      currency: 'USD'
+    };
+  }
 }

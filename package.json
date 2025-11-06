@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@types/dotenv": "^8.2.3",
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "ollama": "^0.6.2"
   }
 }
