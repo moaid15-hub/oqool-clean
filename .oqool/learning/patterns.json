@@ -1,0 +1,12 @@
+[
+  [
+    "UNKNOWN_ERROR",
+    {
+      "errorType": "UNKNOWN_ERROR",
+      "pattern": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpjVQSwgWE5eDXLZLBak\"}",
+      "frequency": 40,
+      "solutions": [],
+      "lastSeen": 1762449769945
+    }
+  ]
+]

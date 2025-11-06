@@ -4,9 +4,10 @@
 // ============================================
 
 import { Command } from 'commander';
-import { ui } from './ui';
-import { createClientFromConfig } from './api-client';
-import { GodMode } from '@oqool/shared/core';
+import { ui } from '../ui';
+import chalk from 'chalk';
+// import { createClientFromConfig } from '../api-client';
+// import { GodMode } from '@oqool/shared/core';
 
 const program = new Command();
 
@@ -140,11 +141,11 @@ program
     ui.printHeader('AI Chat Assistant', 'Powered by Claude, GPT, and DeepSeek');
 
     try {
-      const client = await createClientFromConfig();
-      if (!client) {
-        ui.printError('Configuration error', 'Please run: oqool config setup');
-        return;
-      }
+      // const client = await createClientFromConfig();
+      // if (!client) {
+      //   ui.printError('Configuration error', 'Please run: oqool config setup');
+      //   return;
+      // }
 
       if (!message) {
         // Interactive mode
@@ -200,11 +201,11 @@ program
     );
 
     try {
-      const client = await createClientFromConfig();
-      if (!client) {
-        ui.printError('Configuration error', 'Please run: oqool config setup');
-        return;
-      }
+      // const client = await createClientFromConfig();
+      // if (!client) {
+      //   ui.printError('Configuration error', 'Please run: oqool config setup');
+      //   return;
+      // }
 
       // Display request
       ui.printKeyValue({

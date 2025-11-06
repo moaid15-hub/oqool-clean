@@ -90,9 +90,9 @@ export class LearningSystem {
         this.patterns = new Map(patternsArray);
       }
 
-      console.log(chalk.white('    📚 تم تحميل بيانات التعلم'));
+      // console.log(chalk.white('    📚 تم تحميل بيانات التعلم'));
     } catch (error) {
-      console.log(chalk.yellow('    ⚠️ تعذر تحميل بيانات التعلم'));
+      // console.log(chalk.yellow('    ⚠️ تعذر تحميل بيانات التعلم'));
     }
   }
 

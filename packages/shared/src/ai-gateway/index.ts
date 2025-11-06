@@ -1,27 +1,24 @@
-/**
- * AI Gateway - Unified Multi-Provider System
- * نظام موحد لإدارة جميع مزودي الـ AI
- */
+// ═══════════════════════════════════════════════════════
+// 🌐 AI Gateway - Unified AI Services Export
+// ═══════════════════════════════════════════════════════
 
-// Services
-export { DeepSeekService } from './deepseek-service.js';
-export { ClaudeService } from './claude-service.js';
-export { OpenAIService } from './openai-service.js';
-export { GeminiService } from './gemini-service.js';
-export { OllamaService, getOllamaService } from './ollama-service.js';
-
-// Main Adapter
+// Main Unified Adapter with all types
 export {
-  UnifiedAIAdapter,
-  type AIProvider,
-  type AIRole,
-  type Message,
-  type AIResponse,
-  type UnifiedAIAdapterConfig,
+  UnifiedAIAdapterWithTools,
+  AIProvider,
+  Message,
+  UnifiedToolDefinition,
+  ToolCall,
+  UnifiedRequest,
+  UnifiedResponse
 } from './unified-ai-adapter.js';
 
-// Default export
-export { UnifiedAIAdapter as default } from './unified-ai-adapter.js';
+// Alias for backward compatibility
+export { UnifiedAIAdapterWithTools as UnifiedAIAdapter } from './unified-ai-adapter.js';
 
-// Factory function for easier instantiation
-export { UnifiedAIAdapter as createUnifiedAIAdapter } from './unified-ai-adapter.js';
+// Individual AI Services
+export { default as EnhancedClaudeService } from './claude-service.js';
+export { default as GeminiService } from './gemini-service.js';
+export { default as OpenAIService } from './openai-service.js';
+export { default as DeepSeekIntelligentService } from './deepseek-service.js';
+export { default as OllamaService } from './ollama-service.js';

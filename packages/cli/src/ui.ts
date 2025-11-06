@@ -56,10 +56,10 @@ export class UI {
 
   printBanner(): void {
     const banner = `
- ██████╗  ██████╗  ██████╗  ██████╗ ██╗     
-██╔═══██╗██╔═══██╗██╔═══██╗██╔═══██╗██║     
-██║   ██║██║   ██║██║   ██║██║   ██║██║     
-██║   ██║██║▄▄ ██║██║   ██║██║   ██║██║     
+ ██████╗  ██████╗  ██████╗  ██████╗ ██╗
+██╔═══██╗██╔═══██╗██╔═══██╗██╔═══██╗██║
+██║   ██║██║   ██║██║   ██║██║   ██║██║
+██║   ██║██║▄▄ ██║██║   ██║██║   ██║██║
 ╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝███████╗
  ╚═════╝  ╚══▀▀═╝  ╚═════╝  ╚═════╝ ╚══════╝
     `;
@@ -368,7 +368,7 @@ export class UI {
 
   printDiff(oldContent: string, newContent: string, filename?: string): void {
     const diff = require('diff');
-    
+
     if (filename) {
       console.log(chalk.cyan(`\n📄 ${filename}:\n`));
     }
@@ -492,22 +492,22 @@ export class UI {
   private highlightCode(code: string, language?: string): string {
     // Basic syntax highlighting
     const keywords = ['const', 'let', 'var', 'function', 'async', 'await', 'return', 'if', 'else', 'for', 'while'];
-    
+
     return code.split('\n').map(line => {
       let highlighted = line;
-      
+
       // Keywords
       keywords.forEach(keyword => {
         const regex = new RegExp(`\\b${keyword}\\b`, 'g');
         highlighted = highlighted.replace(regex, chalk.magenta(keyword));
       });
-      
+
       // Strings
       highlighted = highlighted.replace(/(["'`])(.*?)\1/g, (match) => chalk.green(match));
-      
+
       // Comments
       highlighted = highlighted.replace(/(\/\/.*$)/g, (match) => chalk.gray(match));
-      
+
       return highlighted;
     }).join('\n');
   }
@@ -526,7 +526,7 @@ export class UI {
       const prompt = defaultValue ? '[Y/n]' : '[y/N]';
       rl.question(chalk.cyan(`? ${message} ${chalk.gray(prompt)} `), answer => {
         rl.close();
-        
+
         if (!answer) {
           resolve(defaultValue);
         } else {

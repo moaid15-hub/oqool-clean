@@ -1,574 +1,530 @@
-/**
- * Unified AI Adapter
- * نظام موحد لإدارة جميع مزودي الـ AI
- * يختار أفضل مزود تلقائياً حسب المهمة
- */
+// ═══════════════════════════════════════════════════════
+// 🤖 Unified AI Adapter - النظام الموحد الكامل
+// ═══════════════════════════════════════════════════════
 
-import { DeepSeekService } from './deepseek-service.js';
-import { ClaudeService } from './claude-service.js';
-import { OpenAIService } from './openai-service.js';
-import { GeminiService } from './gemini-service.js';
-import { OllamaService } from './ollama-service.js';
+import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-export type AIProvider = 'deepseek' | 'claude' | 'openai' | 'gemini' | 'ollama' | 'auto';
+// ═══════════════════════════════════════════════════════
+// 📋 Types - الأنواع الموحدة
+// ═══════════════════════════════════════════════════════
 
-export type AIRole =
-  | 'architect'
-  | 'coder'
-  | 'reviewer'
-  | 'tester'
-  | 'debugger'
-  | 'optimizer'
-  | 'security'
-  | 'devops';
+export type AIProvider = 'claude' | 'openai' | 'deepseek' | 'gemini' | 'auto';
 
 export interface Message {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
-export interface AIResponse {
-  response: string;
+export interface UnifiedToolDefinition {
+  name: string;
+  description: string;
+  parameters: Record<string, any>;
+}
+
+export interface ToolCall {
+  id: string;
+  name: string;
+  arguments: Record<string, any>;
+}
+
+export interface UnifiedRequest {
+  messages: Message[];
+  tools?: UnifiedToolDefinition[];
+  maxTokens?: number;
+  temperature?: number;
+}
+
+export interface UnifiedResponse {
+  text: string;
+  toolCalls?: ToolCall[];
+  needsToolResults?: boolean;
   provider: AIProvider;
   model: string;
   cost: number;
-  tokensUsed: {
-    input: number;
-    output: number;
-  };
 }
 
-export interface UnifiedAIAdapterConfig {
-  deepseek?: string;
-  claude?: string;
-  openai?: string;
-  gemini?: string;
-  ollama?: {
-    baseURL?: string;
-    model?: string;
-  };
-  defaultProvider?: AIProvider;
-}
+// ═══════════════════════════════════════════════════════
+// 🔄 AI Provider Adapter - المحول الموحد
+// ═══════════════════════════════════════════════════════
 
-export class UnifiedAIAdapter {
-  private providers: Map<AIProvider, any> = new Map();
-  private defaultProvider: AIProvider = 'deepseek';
+class AIProviderAdapter {
+  private claudeClient?: Anthropic;
+  private openaiClient?: OpenAI;
+  private deepseekClient?: OpenAI;
+  private geminiClient?: GoogleGenerativeAI;
 
-  constructor(config: UnifiedAIAdapterConfig) {
-    // تهيئة المزودين المتاحين (فقط لو الـ key صالح)
-
-    // Ollama - Local/Remote Free Models (First priority - مجاني!)
-    if (config.ollama !== undefined || process.env.OLLAMA_URL || process.env.OLLAMA_HOST) {
-      try {
-        this.providers.set('ollama', new OllamaService(config.ollama));
-      } catch (error) {
-        console.warn('[UnifiedAIAdapter] Ollama not available:', error);
-      }
+  constructor(config: {
+    claude?: string;
+    openai?: string;
+    deepseek?: string;
+    gemini?: string;
+  }) {
+    if (config.claude) {
+      this.claudeClient = new Anthropic({ apiKey: config.claude });
     }
-
-    // Gemini (Google) - الأسرع والأرخص
-    if (config.gemini && config.gemini.startsWith('AIzaSy')) {
-      this.providers.set('gemini', new GeminiService(config.gemini));
+    if (config.openai) {
+      this.openaiClient = new OpenAI({ apiKey: config.openai });
     }
-
-    if (config.deepseek && config.deepseek.startsWith('sk-')) {
-      this.providers.set('deepseek', new DeepSeekService(config.deepseek));
+    if (config.deepseek) {
+      this.deepseekClient = new OpenAI({
+        apiKey: config.deepseek,
+        baseURL: 'https://api.deepseek.com/v1',
+      });
     }
-
-    if (config.claude && config.claude.startsWith('sk-ant-')) {
-      this.providers.set('claude', new ClaudeService(config.claude));
-    }
-
-    if (
-      config.openai &&
-      (config.openai.startsWith('sk-proj-') || config.openai.startsWith('sk-'))
-    ) {
-      this.providers.set('openai', new OpenAIService(config.openai));
-    }
-
-    // تعيين المزود الافتراضي
-    if (config.defaultProvider && this.providers.has(config.defaultProvider)) {
-      this.defaultProvider = config.defaultProvider;
-    } else {
-      // إذا المزود الافتراضي مش متاح، استخدم أول مزود متاح
-      // الترتيب: Ollama (مجاني!) → Gemini (أسرع) → DeepSeek (رخيص) → OpenAI → Claude
-      if (this.providers.has('ollama')) {
-        this.defaultProvider = 'ollama';
-      } else if (this.providers.has('gemini')) {
-        this.defaultProvider = 'gemini';
-      } else if (this.providers.has('deepseek')) {
-        this.defaultProvider = 'deepseek';
-      } else if (this.providers.has('openai')) {
-        this.defaultProvider = 'openai';
-      } else if (this.providers.has('claude')) {
-        this.defaultProvider = 'claude';
-      }
-    }
-
-    if (this.providers.size === 0) {
-      console.warn('[UnifiedAIAdapter] No AI providers configured. Ollama will be used as fallback.');
-      // Try to initialize Ollama as fallback
-      try {
-        this.providers.set('ollama', new OllamaService());
-        this.defaultProvider = 'ollama';
-      } catch (error) {
-        throw new Error('At least one AI provider must be configured with a valid API key or Ollama must be available');
-      }
+    if (config.gemini) {
+      this.geminiClient = new GoogleGenerativeAI(config.gemini);
     }
   }
 
-  /**
-   * الدالة الرئيسية - معالجة مع شخصية AI
-   */
-  async processWithPersonality(
-    personality: AIRole,
-    prompt: string,
-    context?: string,
-    provider: AIProvider = 'auto'
-  ): Promise<AIResponse> {
-    // اختيار المزود المناسب
-    const selectedProvider = this.selectProvider(provider, personality, prompt);
+  // ═══════════════════════════════════════════════════════
+  // 🚀 الدالة الرئيسية - إرسال موحد
+  // ═══════════════════════════════════════════════════════
 
-    if (!this.providers.has(selectedProvider)) {
-      throw new Error(`Provider ${selectedProvider} not available`);
-    }
+  async send(
+    provider: AIProvider,
+    request: UnifiedRequest
+  ): Promise<UnifiedResponse> {
+    switch (provider) {
+      case 'claude':
+        if (!this.claudeClient) throw new Error('Claude not configured');
+        return await this.sendToClaude(request);
 
-    const aiService = this.providers.get(selectedProvider);
-    const systemMessage = this.getPersonalitySystemMessage(personality);
+      case 'openai':
+        if (!this.openaiClient) throw new Error('OpenAI not configured');
+        return await this.sendToOpenAI(request, 'openai');
 
-    // بناء الرسائل
-    const messages: Message[] = [{ role: 'system', content: systemMessage }];
+      case 'deepseek':
+        if (!this.deepseekClient) throw new Error('DeepSeek not configured');
+        return await this.sendToOpenAI(request, 'deepseek');
 
-    if (context) {
-      messages.push({
-        role: 'user',
-        content: `السياق:\n${context}\n\nالمهمة:\n${prompt}`,
-      });
-    } else {
-      messages.push({
-        role: 'user',
-        content: prompt,
-      });
-    }
+      case 'gemini':
+        if (!this.geminiClient) throw new Error('Gemini not configured');
+        return await this.sendToGemini(request);
 
-    try {
-      const startTime = Date.now();
-      const response = await aiService.chatCompletion(messages, {
-        systemPrompt: selectedProvider === 'claude' ? systemMessage : undefined,
-      });
-      const endTime = Date.now();
-
-      // تقدير التكلفة (تقريبي)
-      const estimatedInputTokens = this.estimateTokens(messages.map((m) => m.content).join(' '));
-      const estimatedOutputTokens = this.estimateTokens(response);
-      const cost = aiService.calculateCost(estimatedInputTokens, estimatedOutputTokens);
-
-      return {
-        response: response || 'لم يتم الحصول على استجابة',
-        provider: selectedProvider,
-        model: aiService.getModelInfo().model,
-        cost,
-        tokensUsed: {
-          input: estimatedInputTokens,
-          output: estimatedOutputTokens,
-        },
-      };
-    } catch (error: any) {
-      // 🔄 نظام Fallback الذكي - DeepSeek كـ backup نهائي
-      return this.handleProviderFailure(error, selectedProvider, personality, prompt, context);
+      default:
+        throw new Error(`Unknown provider: ${provider}`);
     }
   }
 
-  /**
-   * معالجة عادية بدون شخصية
-   */
-  async process(
-    prompt: string,
-    context?: string,
-    provider: AIProvider = 'auto'
-  ): Promise<AIResponse> {
-    return this.processWithPersonality('coder', prompt, context, provider);
-  }
+  // ─────────────────────────────────────────────────────
+  // 🔵 Claude Adapter
+  // ─────────────────────────────────────────────────────
 
-  /**
-   * Streaming Response
-   */
-  async *processStream(
-    personality: AIRole,
-    prompt: string,
-    context?: string,
-    provider: AIProvider = 'auto'
-  ): AsyncGenerator<string, void, unknown> {
-    const selectedProvider = this.selectProvider(provider, personality, prompt);
+  private async sendToClaude(request: UnifiedRequest): Promise<UnifiedResponse> {
+    // 1. استخراج system prompt
+    const systemMessage = request.messages.find((m) => m.role === 'system');
+    const userMessages = request.messages.filter((m) => m.role !== 'system');
 
-    if (!this.providers.has(selectedProvider)) {
-      throw new Error(`Provider ${selectedProvider} not available`);
-    }
-
-    const aiService = this.providers.get(selectedProvider);
-    const systemMessage = this.getPersonalitySystemMessage(personality);
-
-    const messages: Message[] = [
-      { role: 'system', content: systemMessage },
-      {
-        role: 'user',
-        content: context ? `السياق:\n${context}\n\nالمهمة:\n${prompt}` : prompt,
+    // 2. تحويل Tools لصيغة Claude
+    const claudeTools = request.tools?.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      input_schema: {
+        type: 'object' as const,
+        properties: tool.parameters,
+        required: Object.keys(tool.parameters),
       },
-    ];
+    }));
 
-    try {
-      for await (const chunk of aiService.chatCompletionStream(messages, {
-        systemPrompt: selectedProvider === 'claude' ? systemMessage : undefined,
-      })) {
-        yield chunk;
-      }
-    } catch (error: any) {
-      console.error('Stream error:', error);
-      throw error;
-    }
+    // 3. تحويل Messages
+    const claudeMessages = userMessages.map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    }));
+
+    // 4. إرسال الطلب
+    const response = await this.claudeClient!.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: request.maxTokens || 4096,
+      temperature: request.temperature || 0.7,
+      system: systemMessage?.content,
+      messages: claudeMessages,
+      tools: claudeTools,
+    });
+
+    // 5. معالجة الرد
+    return this.normalizeClaudeResponse(response);
   }
 
-  /**
-   * اختيار أفضل مزود تلقائياً
-   */
-  private selectProvider(requested: AIProvider, personality: AIRole, prompt: string): AIProvider {
-    // إذا المستخدم حدد مزود معين
-    if (requested !== 'auto' && this.providers.has(requested)) {
-      return requested;
+  // 🔄 توحيد رد Claude
+  private normalizeClaudeResponse(response: any): UnifiedResponse {
+    let text = '';
+    const toolCalls: ToolCall[] = [];
+
+    for (const block of response.content) {
+      if (block.type === 'text') {
+        text += block.text;
+      } else if (block.type === 'tool_use') {
+        toolCalls.push({
+          id: block.id,
+          name: block.name,
+          arguments: block.input,
+        });
+      }
     }
 
-    // استراتيجية الاختيار الذكي
-    const providerStrategies: Record<AIRole, AIProvider[]> = {
-      architect: ['claude', 'openai', 'gemini', 'deepseek'], // يحتاج تفكير عميق
-      coder: ['gemini', 'deepseek', 'claude', 'openai'], // Gemini سريع ممتاز في الكود
-      reviewer: ['claude', 'openai', 'gemini', 'deepseek'], // Claude ممتاز في المراجعة
-      tester: ['gemini', 'deepseek', 'openai', 'claude'], // مهمة روتينية - Gemini أسرع
-      debugger: ['gemini', 'deepseek', 'claude', 'openai'], // تحليل سريع
-      optimizer: ['gemini', 'deepseek', 'openai', 'claude'], // تحسينات بسيطة
-      security: ['claude', 'openai', 'gemini', 'deepseek'], // يحتاج دقة عالية
-      devops: ['gemini', 'deepseek', 'openai', 'claude'], // مهام عملية
+    // حساب التكلفة التقريبية
+    const inputTokens = response.usage?.input_tokens || 0;
+    const outputTokens = response.usage?.output_tokens || 0;
+    const cost = (inputTokens * 3.0 + outputTokens * 15.0) / 1_000_000;
+
+    return {
+      text,
+      toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+      needsToolResults: toolCalls.length > 0,
+      provider: 'claude',
+      model: response.model,
+      cost,
     };
+  }
 
-    // اختيار حسب تعقيد السؤال
-    const complexity = this.estimateComplexity(prompt);
+  // ─────────────────────────────────────────────────────
+  // 🟢 OpenAI / DeepSeek Adapter
+  // ─────────────────────────────────────────────────────
 
-    if (complexity === 'high') {
-      // مهمة معقدة → Claude أو GPT-4
-      if (this.providers.has('claude')) return 'claude';
-      if (this.providers.has('openai')) return 'openai';
-      if (this.providers.has('gemini')) return 'gemini';
-    } else if (complexity === 'low') {
-      // مهمة بسيطة → Gemini (أسرع) أو DeepSeek (أرخص)
-      if (this.providers.has('gemini')) return 'gemini';
-      if (this.providers.has('deepseek')) return 'deepseek';
-    }
+  private async sendToOpenAI(
+    request: UnifiedRequest,
+    type: 'openai' | 'deepseek'
+  ): Promise<UnifiedResponse> {
+    const client = type === 'openai' ? this.openaiClient! : this.deepseekClient!;
 
-    // حسب الشخصية
-    const preferredProviders = providerStrategies[personality] || [
-      'gemini',
-      'deepseek',
-      'openai',
-      'claude',
-    ];
+    // 1. تحويل Tools لصيغة OpenAI
+    const openaiTools = request.tools?.map((tool) => ({
+      type: 'function' as const,
+      function: {
+        name: tool.name,
+        description: tool.description,
+        parameters: {
+          type: 'object' as const,
+          properties: tool.parameters,
+          required: Object.keys(tool.parameters),
+        },
+      },
+    }));
 
-    for (const provider of preferredProviders) {
-      if (this.providers.has(provider)) {
-        return provider;
+    // 2. تحويل Messages (System في messages)
+    const openaiMessages = request.messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    // 3. إرسال الطلب
+    const response = await client.chat.completions.create({
+      model: type === 'openai' ? 'gpt-4-turbo' : 'deepseek-chat',
+      max_tokens: request.maxTokens || 4096,
+      temperature: request.temperature || 0.7,
+      messages: openaiMessages as any,
+      tools: openaiTools,
+    });
+
+    // 4. معالجة الرد
+    return this.normalizeOpenAIResponse(response, type);
+  }
+
+  // 🔄 توحيد رد OpenAI
+  private normalizeOpenAIResponse(response: any, type: 'openai' | 'deepseek'): UnifiedResponse {
+    const message = response.choices[0]?.message;
+    const text = message?.content || '';
+    const toolCalls: ToolCall[] = [];
+
+    if (message?.tool_calls) {
+      for (const call of message.tool_calls) {
+        toolCalls.push({
+          id: call.id,
+          name: call.function.name,
+          arguments: JSON.parse(call.function.arguments),
+        });
       }
     }
 
-    return this.defaultProvider;
+    // حساب التكلفة
+    const inputTokens = response.usage?.prompt_tokens || 0;
+    const outputTokens = response.usage?.completion_tokens || 0;
+
+    let cost = 0;
+    if (type === 'openai') {
+      cost = (inputTokens * 10.0 + outputTokens * 30.0) / 1_000_000; // GPT-4 Turbo
+    } else {
+      cost = (inputTokens * 0.14 + outputTokens * 0.28) / 1_000_000; // DeepSeek
+    }
+
+    return {
+      text,
+      toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+      needsToolResults: toolCalls.length > 0,
+      provider: type === 'openai' ? 'openai' : 'deepseek',
+      model: response.model,
+      cost,
+    };
   }
 
-  /**
-   * 🔄 معالج فشل المزود - Fallback الذكي
-   */
-  private async handleProviderFailure(
-    error: any,
-    failedProvider: AIProvider,
-    personality: AIRole,
-    prompt: string,
-    context?: string
-  ): Promise<AIResponse> {
-    // تحليل نوع الخطأ
-    const errorType = this.categorizeError(error);
-    console.warn(`⚠️ Provider ${failedProvider} failed (${errorType}): ${error.message}`);
+  // ─────────────────────────────────────────────────────
+  // 🔴 Gemini Adapter
+  // ─────────────────────────────────────────────────────
 
-    // استراتيجية Fallback:
-    // 1. إذا فشل Claude/OpenAI → جرب DeepSeek
-    // 2. إذا فشل DeepSeek → جرب defaultProvider
-    // 3. إذا فشل الكل → رمي Error
+  private async sendToGemini(request: UnifiedRequest): Promise<UnifiedResponse> {
+    const model = this.geminiClient!.getGenerativeModel({
+      model: 'gemini-2.0-flash-exp',
+    });
 
-    const fallbackChain = this.getFallbackChain(failedProvider);
+    // 1. تحويل Tools لصيغة Gemini
+    const geminiTools = request.tools
+      ? [
+          {
+            functionDeclarations: request.tools.map((tool) => ({
+              name: tool.name,
+              description: tool.description,
+              parameters: {
+                type: 'object' as const,
+                properties: tool.parameters,
+                required: Object.keys(tool.parameters),
+              },
+            })),
+          },
+        ]
+      : undefined;
 
-    for (const nextProvider of fallbackChain) {
-      if (this.providers.has(nextProvider)) {
-        console.log(`🔄 Falling back to ${nextProvider}...`);
-        try {
-          return await this.processWithPersonality(personality, prompt, context, nextProvider);
-        } catch (fallbackError: any) {
-          console.warn(`⚠️ Fallback ${nextProvider} also failed: ${fallbackError.message}`);
-          continue; // جرب المزود التالي
+    // 2. تحويل Messages لصيغة Gemini
+    const systemMessage = request.messages.find((m) => m.role === 'system');
+    const userMessages = request.messages.filter((m) => m.role !== 'system');
+
+    const contents = userMessages.map((m) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }));
+
+    // 3. إرسال الطلب
+    const result = await model.generateContent({
+      contents,
+      systemInstruction: systemMessage?.content,
+      tools: geminiTools,
+      generationConfig: {
+        maxOutputTokens: request.maxTokens || 4096,
+        temperature: request.temperature || 0.7,
+      },
+    });
+
+    // 4. معالجة الرد
+    return this.normalizeGeminiResponse(result);
+  }
+
+  // 🔄 توحيد رد Gemini
+  private normalizeGeminiResponse(result: any): UnifiedResponse {
+    const response = result.response;
+    let text = '';
+    const toolCalls: ToolCall[] = [];
+
+    for (const candidate of response.candidates || []) {
+      for (const part of candidate.content?.parts || []) {
+        if (part.text) {
+          text += part.text;
+        } else if (part.functionCall) {
+          toolCalls.push({
+            id: `gemini_${Date.now()}_${Math.random()}`,
+            name: part.functionCall.name,
+            arguments: part.functionCall.args,
+          });
         }
       }
     }
 
-    // إذا فشلت كل المحاولات
-    throw new Error(
-      `❌ All AI providers failed. Last error from ${failedProvider}: ${error.message}\n` +
-        `Available providers: ${Array.from(this.providers.keys()).join(', ')}\n` +
-        `Please check your API keys and balance.`
-    );
-  }
+    // حساب التكلفة التقريبية
+    const inputTokens = response.usageMetadata?.promptTokenCount || 0;
+    const outputTokens = response.usageMetadata?.candidatesTokenCount || 0;
+    const cost = (inputTokens * 0.1 + outputTokens * 0.4) / 1_000_000; // Gemini 2.0 Flash
 
-  /**
-   * 🎯 تحديد سلسلة Fallback حسب المزود الفاشل
-   */
-  private getFallbackChain(failedProvider: AIProvider): AIProvider[] {
-    // Gemini دائماً الخيار الأول (الأسرع والأرخص)
-    const fallbackStrategies: Record<AIProvider, AIProvider[]> = {
-      claude: ['gemini', 'deepseek', 'openai'], // Claude فشل → Gemini → DeepSeek → OpenAI
-      openai: ['gemini', 'deepseek', 'claude'], // OpenAI فشل → Gemini → DeepSeek → Claude
-      deepseek: ['gemini', 'openai', 'claude'], // DeepSeek فشل → Gemini → OpenAI → Claude
-      gemini: ['deepseek', 'openai', 'claude'], // Gemini فشل → DeepSeek → OpenAI → Claude
-      ollama: ['gemini', 'deepseek', 'openai', 'claude'], // Ollama فشل → Gemini → DeepSeek → OpenAI → Claude
-      auto: ['gemini', 'deepseek', 'openai', 'claude'], // Auto → Gemini أولاً
+    return {
+      text,
+      toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+      needsToolResults: toolCalls.length > 0,
+      provider: 'gemini',
+      model: 'gemini-2.0-flash-exp',
+      cost,
     };
-
-    return fallbackStrategies[failedProvider] || ['gemini', 'deepseek'];
-  }
-
-  /**
-   * 🔍 تصنيف نوع الخطأ
-   */
-  private categorizeError(error: any): string {
-    const errorMsg = error.message?.toLowerCase() || '';
-
-    if (
-      errorMsg.includes('401') ||
-      errorMsg.includes('authentication') ||
-      errorMsg.includes('invalid x-api-key')
-    ) {
-      return 'Invalid API Key';
-    }
-    if (errorMsg.includes('403') || errorMsg.includes('forbidden')) {
-      return 'Access Forbidden';
-    }
-    if (errorMsg.includes('429') || errorMsg.includes('rate limit') || errorMsg.includes('quota')) {
-      return 'Rate Limit / No Credits';
-    }
-    if (errorMsg.includes('insufficient') || errorMsg.includes('balance')) {
-      return 'Insufficient Balance';
-    }
-    if (errorMsg.includes('500') || errorMsg.includes('503')) {
-      return 'Server Error';
-    }
-    if (errorMsg.includes('timeout') || errorMsg.includes('network')) {
-      return 'Network Error';
-    }
-
-    return 'Unknown Error';
-  }
-
-  /**
-   * تقدير تعقيد السؤال
-   */
-  private estimateComplexity(prompt: string): 'low' | 'medium' | 'high' {
-    const keywords = {
-      high: [
-        'architecture',
-        'design pattern',
-        'optimize',
-        'security',
-        'review',
-        'معماري',
-        'تصميم',
-        'أمان',
-        'مراجعة',
-      ],
-      low: ['simple', 'basic', 'quick', 'بسيط', 'سريع', 'صغير'],
-    };
-
-    const lowerPrompt = prompt.toLowerCase();
-
-    if (keywords.high.some((k) => lowerPrompt.includes(k))) {
-      return 'high';
-    }
-
-    if (keywords.low.some((k) => lowerPrompt.includes(k))) {
-      return 'low';
-    }
-
-    if (prompt.length > 500) {
-      return 'high';
-    }
-
-    return 'medium';
-  }
-
-  /**
-   * تقدير عدد الـ Tokens (تقريبي)
-   */
-  private estimateTokens(text: string): number {
-    // قاعدة بسيطة: كل 4 أحرف = 1 token تقريباً
-    return Math.ceil(text.length / 4);
-  }
-
-  /**
-   * تعريف الشخصيات الـ8
-   */
-  private getPersonalitySystemMessage(personality: AIRole): string {
-    const personalities: Record<AIRole, string> = {
-      architect: `أنت مهندس معماري برمجي خبير. مهمتك تصميم بنى معمارية متينة وقابلة للتطوير.
-المجال: تصميم الأنظمة، أنماط التصميم، قابلية التوسع، الأمان.
-أسلوبك: محترف، استراتيجي، يفكر بالصورة الكبيرة.`,
-
-      coder: `أنت مبرمج خبير. مهمتك كتابة كود نظيف وفعال وقابل للصيانة.
-المجال: كتابة الكود، best practices، كفاءة الأداء، معالجة الأخطاء.
-أسلوبك: عملي، مباشر، يركز على التنفيذ.`,
-
-      reviewer: `أنت مراجع كود محترف. مهمتك تحليل الجودة واكتشاف المشاكل.
-المجال: مراجعة الكود، كشف الثغرات، الالتزام بالمعايير، اقتراح التحسينات.
-أسلوبك: ناقد بناء، دقيق، يهتم بالجودة.`,
-
-      tester: `أنت مختبر برمجيات خبير. مهمتك ضمان الجودة والموثوقية.
-المجال: كتابة الاختبارات، حالات الاختبار، تغطية الاختبارات، جودة المنتج.
-أسلوبك: شامل، يفكر في كل الاحتمالات، وقائي.`,
-
-      debugger: `أنت محلل أخطاء استثنائي. مهمتك تشخيص وحل المشكلات المعقدة.
-المجال: تحليل الأخطاء، تتبع الجذور، حلول عملية، تحسين الأداء.
-أسلوبك: تحليلي، منهجي، صبور.`,
-
-      optimizer: `أنت محسن أداء متميز. مهمتك جعل التطبيقات أسرع وأكثر كفاءة.
-المجال: تحسين السرعة، تقليل استخدام الموارد، كفاءة الذاكرة، تحسين الخوارزميات.
-أسلوبك: دقيق، يقيس بالأرقام، يركز على النتائج.`,
-
-      security: `أنت خبير أمن سيبراني. مهمتك حماية التطبيقات من التهديدات.
-المجال: الأمان السيبراني، منع الثغرات، best practices أمنية، حماية البيانات.
-أسلوبك: حذر، شامل، يفكر مثل المهاجم.`,
-
-      devops: `أنت خبير DevOps. مهمتك تبسيط العمليات وضمان الموثوقية.
-المجال: الأتمتة، CI/CD، البنية التحتية، المراقبة، إدارة النشر.
-أسلوبك: عملي، يهتم بالأتمتة، يفكر بالبنية التحتية.`,
-    };
-
-    return personalities[personality] || 'أنت مساعد برمجي خبير. قدم مساعدة تقنية متخصصة.';
-  }
-
-  /**
-   * وظائف مساعدة سريعة
-   */
-  async quickCodeHelp(
-    prompt: string,
-    codeContext?: string,
-    provider?: AIProvider
-  ): Promise<string> {
-    const result = await this.processWithPersonality('coder', prompt, codeContext, provider);
-    return result.response;
-  }
-
-  async quickReview(code: string, provider?: AIProvider): Promise<string> {
-    const result = await this.processWithPersonality('reviewer', 'راجع هذا الكود', code, provider);
-    return result.response;
-  }
-
-  async quickOptimize(code: string, provider?: AIProvider): Promise<string> {
-    const result = await this.processWithPersonality(
-      'optimizer',
-      'حسن أداء هذا الكود',
-      code,
-      provider
-    );
-    return result.response;
-  }
-
-  async quickDebug(error: string, code?: string, provider?: AIProvider): Promise<string> {
-    const context = code ? `الكود:\n${code}\n\nالخطأ:\n${error}` : error;
-    const result = await this.processWithPersonality(
-      'debugger',
-      'حلل وأصلح هذا الخطأ',
-      context,
-      provider
-    );
-    return result.response;
-  }
-
-  /**
-   * الحصول على إحصائيات
-   */
-  getAvailableProviders(): Array<{ id: AIProvider; name: string; available: boolean }> {
-    return [
-      { id: 'gemini', name: 'Gemini (Google)', available: this.providers.has('gemini') },
-      { id: 'deepseek', name: 'DeepSeek', available: this.providers.has('deepseek') },
-      { id: 'claude', name: 'Claude (Anthropic)', available: this.providers.has('claude') },
-      { id: 'openai', name: 'OpenAI (GPT-4)', available: this.providers.has('openai') },
-    ];
-  }
-
-  /**
-   * تغيير المزود الافتراضي
-   */
-  setDefaultProvider(provider: AIProvider): void {
-    if (this.providers.has(provider)) {
-      this.defaultProvider = provider;
-    } else {
-      throw new Error(`Provider ${provider} is not available`);
-    }
-  }
-
-  /**
-   * الحصول على معلومات التكلفة
-   */
-  getCostComparison(): Array<{ provider: string; inputCost: number; outputCost: number }> {
-    const costs: Array<{ provider: string; inputCost: number; outputCost: number }> = [];
-
-    if (this.providers.has('gemini')) {
-      costs.push({ provider: 'Gemini 2.0 Flash', inputCost: 0.1, outputCost: 0.4 });
-    }
-
-    if (this.providers.has('deepseek')) {
-      costs.push({ provider: 'DeepSeek', inputCost: 0.14, outputCost: 0.28 });
-    }
-
-    if (this.providers.has('claude')) {
-      costs.push({ provider: 'Claude 3.5 Sonnet', inputCost: 3.0, outputCost: 15.0 });
-    }
-
-    if (this.providers.has('openai')) {
-      costs.push({ provider: 'GPT-4 Turbo', inputCost: 10.0, outputCost: 30.0 });
-    }
-
-    return costs;
-  }
-
-  // ============================================
-  // 🔧 Compatibility Methods for Smart Chat
-  // ============================================
-
-  /**
-   * Complete method (wrapper for process)
-   * Used by Enhanced AI Adapter
-   */
-  async complete(options: {
-    message: string;
-    context: string;
-    history: Array<{ role: string; content: string }>;
-  }): Promise<{ text: string }> {
-    const response = await this.process(options.message, options.context);
-    return { text: response.response }; // Extract response string from AIResponse
-  }
-
-  /**
-   * Stream complete method (wrapper for processStream)
-   * Used by Enhanced AI Adapter and Smart Chat
-   */
-  async *streamComplete(options: {
-    message: string;
-    context: string;
-    history: Array<{ role: string; content: string }>;
-  }): AsyncGenerator<string> {
-    yield* this.processStream('coder', options.message, options.context);
   }
 }
 
-export default UnifiedAIAdapter;
+// ═══════════════════════════════════════════════════════
+// 🎯 Unified AI Adapter - النظام الكامل
+// ═══════════════════════════════════════════════════════
+
+export class UnifiedAIAdapterWithTools {
+  private adapter: AIProviderAdapter;
+  private defaultProvider: AIProvider = 'deepseek';
+
+  constructor(config: {
+    claude?: string;
+    openai?: string;
+    deepseek?: string;
+    gemini?: string;
+    defaultProvider?: AIProvider;
+  }) {
+    this.adapter = new AIProviderAdapter(config);
+    if (config.defaultProvider) {
+      this.defaultProvider = config.defaultProvider;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // 💬 محادثة بدون أدوات (الموجود حالياً)
+  // ═══════════════════════════════════════════════════════
+
+  async chat(messages: Message[], provider?: AIProvider): Promise<UnifiedResponse> {
+    const selectedProvider = provider || this.defaultProvider;
+    return await this.adapter.send(selectedProvider, { messages });
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // 🔧 محادثة مع أدوات (الجديد!)
+  // ═══════════════════════════════════════════════════════
+
+  async chatWithTools(
+    messages: Message[],
+    tools: UnifiedToolDefinition[],
+    provider?: AIProvider
+  ): Promise<UnifiedResponse> {
+    // اختيار المزود - إذا طلب tools، استخدم مزود يدعمها
+    let selectedProvider = provider || this.selectProviderForTools();
+
+    return await this.adapter.send(selectedProvider, {
+      messages,
+      tools,
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // 🔄 معالجة Loop كامل مع Tools
+  // ═══════════════════════════════════════════════════════
+
+  async executeWithTools(
+    messages: Message[],
+    tools: UnifiedToolDefinition[],
+    toolExecutor: (name: string, args: any) => Promise<string>,
+    maxIterations: number = 10,
+    provider?: AIProvider
+  ): Promise<{ text: string; iterations: number; totalCost: number }> {
+    const conversationHistory = [...messages];
+    let iterations = 0;
+    let totalCost = 0;
+
+    while (iterations < maxIterations) {
+      iterations++;
+
+      // 1. إرسال الطلب
+      const response = await this.chatWithTools(conversationHistory, tools, provider);
+      totalCost += response.cost;
+
+      // 2. إذا لا توجد tool calls، انتهينا
+      if (!response.needsToolResults) {
+        return {
+          text: response.text,
+          iterations,
+          totalCost,
+        };
+      }
+
+      // 3. تنفيذ الأدوات
+      const toolResults: string[] = [];
+      for (const toolCall of response.toolCalls!) {
+        console.log(`🔧 تنفيذ: ${toolCall.name}(${JSON.stringify(toolCall.arguments)})`);
+        const result = await toolExecutor(toolCall.name, toolCall.arguments);
+        toolResults.push(result);
+      }
+
+      // 4. إضافة النتائج للمحادثة
+      conversationHistory.push({
+        role: 'assistant',
+        content: response.text || `استخدمت الأدوات: ${response.toolCalls!.map((t) => t.name).join(', ')}`,
+      });
+
+      conversationHistory.push({
+        role: 'user',
+        content: `نتائج الأدوات:\n${toolResults.join('\n\n')}`,
+      });
+    }
+
+    return {
+      text: 'وصلت للحد الأقصى من المحاولات',
+      iterations,
+      totalCost,
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // 🎯 اختيار مزود يدعم Tools
+  // ═══════════════════════════════════════════════════════
+
+  private selectProviderForTools(): AIProvider {
+    // الأولوية:
+    // 1. Gemini (أسرع وأرخص ويدعم tools)
+    // 2. Claude (أفضل جودة ويدعم tools)
+    // 3. OpenAI (يدعم tools لكن غالي)
+    // ⚠️ DeepSeek قد لا يدعم tools - نتجنبه
+
+    // في الكود الحقيقي، تحقق من المزودين المتاحين
+    return 'gemini'; // افتراضي
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// 📝 مثال استخدام
+// ═══════════════════════════════════════════════════════
+
+export async function example() {
+  const adapter = new UnifiedAIAdapterWithTools({
+    claude: process.env.ANTHROPIC_API_KEY,
+    openai: process.env.OPENAI_API_KEY,
+    deepseek: process.env.DEEPSEEK_API_KEY,
+    gemini: process.env.GEMINI_API_KEY,
+  });
+
+  // تعريف الأدوات
+  const tools: UnifiedToolDefinition[] = [
+    {
+      name: 'read_file',
+      description: 'قراءة محتوى ملف',
+      parameters: {
+        path: { type: 'string', description: 'مسار الملف' },
+      },
+    },
+    {
+      name: 'write_file',
+      description: 'كتابة محتوى لملف',
+      parameters: {
+        path: { type: 'string', description: 'مسار الملف' },
+        content: { type: 'string', description: 'المحتوى' },
+      },
+    },
+  ];
+
+  // تنفيذ الأدوات
+  const toolExecutor = async (name: string, args: any): Promise<string> => {
+    if (name === 'read_file') {
+      // قراءة فعلية من النظام
+      return `محتوى الملف: ${args.path}`;
+    }
+    if (name === 'write_file') {
+      // كتابة فعلية للنظام
+      return `تم الكتابة بنجاح إلى: ${args.path}`;
+    }
+    return 'أداة غير معروفة';
+  };
+
+  // استخدام مع Gemini (أسرع وأرخص)
+  const result = await adapter.executeWithTools(
+    [
+      { role: 'system', content: 'أنت مساعد برمجة ذكي' },
+      { role: 'user', content: 'اقرأ ملف package.json وأضف dependency جديد' },
+    ],
+    tools,
+    toolExecutor,
+    10,
+    'gemini' // أو 'claude' للجودة الأعلى
+  );
+
+  console.log('النتيجة:', result.text);
+  console.log('عدد الدورات:', result.iterations);
+  console.log('التكلفة الإجمالية: $', result.totalCost.toFixed(4));
+}

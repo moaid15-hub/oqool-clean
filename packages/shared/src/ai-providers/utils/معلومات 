@@ -1,0 +1,780 @@
+📁 الملفات الجديدة للتكامل
+text
+packages/shared/src/ai-providers/ (استكمال)
+├── router/
+│   ├── intelligent-router.ts         # الموجه الذكي الكامل
+│   ├── provider-selector.ts          # محدد المزود المتقدم
+│   ├── fallback-manager.ts           # مدير Fallback المتكامل
+│   └── cost-optimizer.ts             # محسن التكلفة
+├── monitoring/
+│   ├── provider-monitor.ts           # مراقب الأداء
+│   ├── cost-tracker.ts               # متتبع التكلفة
+│   └── metrics-collector.ts          # جامع المقاييس
+└── integration/                      # التكامل مع النظام الحالي
+    ├── agent-loop-integration.ts     # تكامل Agent Loop
+    ├── tool-execution-integration.ts # تكامل تنفيذ الأدوات
+    └── cli-integration.ts            # تكامل CLI
+🚀 تنفيذ الموجه الذكي والمكونات المتقدمة
+1. الموجه الذكي (Intelligent Router)
+router/intelligent-router.ts
+
+typescript
+import { ProviderRegistry } from '../registry/provider-registry';
+import { ProviderSelector } from './provider-selector';
+import { FallbackManager } from './fallback-manager';
+import { CostOptimizer } from './cost-optimizer';
+import { IAIProvider, UnifiedMessage, UnifiedTool, UnifiedResponse } from '../interfaces';
+
+export class IntelligentRouter {
+  private registry: ProviderRegistry;
+  private selector: ProviderSelector;
+  private fallbackManager: FallbackManager;
+  private costOptimizer: CostOptimizer;
+  private defaultProvider: string = 'claude';
+
+  constructor(registry: ProviderRegistry) {
+    this.registry = registry;
+    this.selector = new ProviderSelector(registry);
+    this.fallbackManager = new FallbackManager(registry);
+    this.costOptimizer = new CostOptimizer(registry);
+  }
+
+  /**
+   * المحادثة الذكية مع اختيار المزود التلقائي
+   */
+  async chat(
+    messages: UnifiedMessage[], 
+    options: RouterOptions = {}
+  ): Promise<UnifiedResponse> {
+    const taskAnalysis = this.analyzeTask(messages, options);
+    const selectedProvider = await this.selector.selectProvider(taskAnalysis);
+    
+    return this.fallbackManager.executeWithFallback(
+      selectedProvider,
+      (provider: IAIProvider) => provider.chat(messages),
+      taskAnalysis
+    );
+  }
+
+  /**
+   * المحادثة مع الأدوات مع اختيار المزود التلقائي
+   */
+  async chatWithTools(
+    messages: UnifiedMessage[],
+    tools: UnifiedTool[],
+    options: RouterOptions = {}
+  ): Promise<UnifiedResponse> {
+    const taskAnalysis = this.analyzeTask(messages, { ...options, tools });
+    const selectedProvider = await this.selector.selectProvider(taskAnalysis);
+    
+    return this.fallbackManager.executeWithFallback(
+      selectedProvider,
+      (provider: IAIProvider) => provider.chatWithTools(messages, tools),
+      taskAnalysis
+    );
+  }
+
+  /**
+   * اختيار مزود محدد يدوياً (للاستخدام المتقدم)
+   */
+  async withProvider(
+    providerName: string,
+    operation: (provider: IAIProvider) => Promise<UnifiedResponse>
+  ): Promise<UnifiedResponse> {
+    const provider = this.registry.getProvider(providerName);
+    return this.fallbackManager.executeWithFallback(
+      providerName,
+      operation,
+      { providerPreference: providerName }
+    );
+  }
+
+  /**
+   * تحليل المهمة لتحديد المتطلبات
+   */
+  private analyzeTask(messages: UnifiedMessage[], options: RouterOptions): TaskAnalysis {
+    const lastMessage = messages[messages.length - 1]?.content || '';
+    const hasTools = options.tools && options.tools.length > 0;
+    
+    return {
+      // تحليل النص
+      requiresTools: hasTools,
+      complexity: this.estimateComplexity(lastMessage),
+      estimatedTokens: this.estimateTokens(messages),
+      
+      // التفضيلات
+      budget: options.budget,
+      speedPriority: options.speedPriority || false,
+      qualityPriority: options.qualityPriority || false,
+      
+      // السياق
+      providerPreference: options.providerPreference,
+      fallbackEnabled: options.fallbackEnabled !== false
+    };
+  }
+
+  private estimateComplexity(text: string): number {
+    // تحليل بسيط للتعقيد بناءً على طول النص والكلمات المفتاحية
+    const lengthScore = Math.min(text.length / 1000, 1);
+    const keywordScore = this.detectComplexityKeywords(text);
+    return Math.min(lengthScore + keywordScore, 1);
+  }
+
+  private detectComplexityKeywords(text: string): number {
+    const complexKeywords = ['معقد', 'كبير', 'مشروع', 'نظام', 'enterprise', 'كامل'];
+    const matches = complexKeywords.filter(keyword => 
+      text.toLowerCase().includes(keyword.toLowerCase())
+    );
+    return matches.length * 0.2;
+  }
+
+  private estimateTokens(messages: UnifiedMessage[]): number {
+    return messages.reduce((total, msg) => total + (msg.metadata?.tokens || this.estimateTextTokens(msg.content)), 0);
+  }
+
+  private estimateTextTokens(text: string): number {
+    return Math.ceil(text.length / 4); // تقدير تقريبي
+  }
+
+  /**
+   * الحصول على إحصائيات النظام
+   */
+  getRouterStats(): RouterStats {
+    return {
+      totalRequests: this.fallbackManager.getTotalRequests(),
+      successRate: this.fallbackManager.getSuccessRate(),
+      averageCost: this.costOptimizer.getAverageCost(),
+      providerPerformance: this.selector.getProviderPerformance(),
+      costSavings: this.costOptimizer.getCostSavings()
+    };
+  }
+}
+
+export interface RouterOptions {
+  providerPreference?: string;
+  budget?: number;
+  speedPriority?: boolean;
+  qualityPriority?: boolean;
+  tools?: UnifiedTool[];
+  fallbackEnabled?: boolean;
+}
+
+export interface TaskAnalysis {
+  requiresTools: boolean;
+  complexity: number;
+  estimatedTokens: number;
+  budget?: number;
+  speedPriority: boolean;
+  qualityPriority: boolean;
+  providerPreference?: string;
+  fallbackEnabled: boolean;
+}
+
+export interface RouterStats {
+  totalRequests: number;
+  successRate: number;
+  averageCost: number;
+  providerPerformance: Record<string, any>;
+  costSavings: number;
+}
+2. محدد المزود المتقدم (Provider Selector)
+router/provider-selector.ts
+
+typescript
+import { ProviderRegistry } from '../registry/provider-registry';
+import { IAIProvider, ProviderCapabilities } from '../interfaces';
+
+export class ProviderSelector {
+  private registry: ProviderRegistry;
+  private performanceHistory: Map<string, ProviderPerformance> = new Map();
+  private selectionWeights = {
+    cost: 0.4,
+    capabilities: 0.3,
+    performance: 0.2,
+    availability: 0.1
+  };
+
+  constructor(registry: ProviderRegistry) {
+    this.registry = registry;
+    this.initializePerformanceTracking();
+  }
+
+  /**
+   * اختيار أفضل مزود للمهمة
+   */
+  async selectProvider(taskAnalysis: any): Promise<string> {
+    const availableProviders = this.registry.getAvailableProviders();
+    
+    // إذا كان هناك تفضيل محدد
+    if (taskAnalysis.providerPreference && availableProviders.includes(taskAnalysis.providerPreference)) {
+      return taskAnalysis.providerPreference;
+    }
+
+    // حساب النقاط لكل مزود
+    const providerScores = await Promise.all(
+      availableProviders.map(async provider => ({
+        provider,
+        score: await this.calculateProviderScore(provider, taskAnalysis)
+      }))
+    );
+
+    // اختيار المزود بأعلى نقاط
+    providerScores.sort((a, b) => b.score - a.score);
+    return providerScores[0].provider;
+  }
+
+  /**
+   * حساب النقاط لكل مزود
+   */
+  private async calculateProviderScore(providerName: string, taskAnalysis: any): Promise<number> {
+    const provider = this.registry.getProvider(providerName);
+    const capabilities = provider.getCapabilities();
+    const performance = this.performanceHistory.get(providerName) || this.defaultPerformance();
+
+    let score = 0;
+
+    // 1. التكلفة (40%)
+    score += this.calculateCostScore(provider, taskAnalysis) * this.selectionWeights.cost;
+
+    // 2. القدرات (30%)
+    score += this.calculateCapabilitiesScore(capabilities, taskAnalysis) * this.selectionWeights.capabilities;
+
+    // 3. الأداء (20%)
+    score += this.calculatePerformanceScore(performance) * this.selectionWeights.performance;
+
+    // 4. التوفر (10%)
+    score += this.calculateAvailabilityScore(performance) * this.selectionWeights.availability;
+
+    return score;
+  }
+
+  private calculateCostScore(provider: IAIProvider, taskAnalysis: any): number {
+    const pricing = provider.getPricing();
+    const estimatedCost = (taskAnalysis.estimatedTokens * pricing.inputCostPerToken) + 
+                         (1000 * pricing.outputCostPerToken); // تقدير الإخراج
+    
+    // أرخص = نقاط أعلى
+    const maxAcceptableCost = taskAnalysis.budget || 0.1; // $0.1 افتراضي
+    return Math.max(0, 1 - (estimatedCost / maxAcceptableCost));
+  }
+
+  private calculateCapabilitiesScore(capabilities: ProviderCapabilities, taskAnalysis: any): number {
+    let score = 0.5; // درجة أساسية
+
+    // إذا كانت المهمة تحتاج أدوات والمزود يدعمها
+    if (taskAnalysis.requiresTools && capabilities.supportsTools) {
+      score += 0.3;
+    }
+
+    // إذا كانت المهمة معقدة والمزود قوي
+    if (taskAnalysis.complexity > 0.7 && capabilities.maxTokens > 100000) {
+      score += 0.2;
+    }
+
+    // إذا كانت الأولوية للجودة والمزود متقدم
+    if (taskAnalysis.qualityPriority && capabilities.availableModels.length > 2) {
+      score += 0.2;
+    }
+
+    return Math.min(1, score);
+  }
+
+  private calculatePerformanceScore(performance: ProviderPerformance): number {
+    // وقت استجابة أفضل = نقاط أعلى
+    const responseTimeScore = 1 - Math.min(performance.avgResponseTime / 10000, 1);
+    const successRateScore = performance.successRate;
+    
+    return (responseTimeScore * 0.6) + (successRateScore * 0.4);
+  }
+
+  private calculateAvailabilityScore(performance: ProviderPerformance): number {
+    // توفر أعلى = نقاط أعلى
+    return performance.availability;
+  }
+
+  /**
+   * تحديث أداء المزود بعد كل طلب
+   */
+  recordProviderResult(providerName: string, success: boolean, responseTime: number, cost: number): void {
+    const performance = this.performanceHistory.get(providerName) || this.defaultPerformance();
+    
+    performance.totalRequests++;
+    if (success) {
+      performance.successfulRequests++;
+    }
+    
+    // تحديث متوسط وقت الاستجابة
+    performance.avgResponseTime = (
+      (performance.avgResponseTime * (performance.totalRequests - 1)) + responseTime
+    ) / performance.totalRequests;
+    
+    // تحديث التكلفة الإجمالية
+    performance.totalCost += cost;
+    
+    // تحديث التوفر
+    performance.availability = performance.successfulRequests / performance.totalRequests;
+    
+    this.performanceHistory.set(providerName, performance);
+  }
+
+  private defaultPerformance(): ProviderPerformance {
+    return {
+      totalRequests: 0,
+      successfulRequests: 0,
+      avgResponseTime: 0,
+      totalCost: 0,
+      availability: 1,
+      successRate: 1
+    };
+  }
+
+  /**
+   * الحصول على إحصائيات الأداء
+   */
+  getProviderPerformance(): Record<string, ProviderPerformance> {
+    return Object.fromEntries(this.performanceHistory);
+  }
+
+  private initializePerformanceTracking(): void {
+    const providers = this.registry.getAvailableProviders();
+    providers.forEach(provider => {
+      this.performanceHistory.set(provider, this.defaultPerformance());
+    });
+  }
+}
+
+interface ProviderPerformance {
+  totalRequests: number;
+  successfulRequests: number;
+  avgResponseTime: number;
+  totalCost: number;
+  availability: number;
+  successRate: number;
+}
+3. مدير Fallback المتكامل
+router/fallback-manager.ts
+
+typescript
+import { ProviderRegistry } from '../registry/provider-registry';
+import { IAIProvider, UnifiedResponse } from '../interfaces';
+
+export class FallbackManager {
+  private registry: ProviderRegistry;
+  private maxRetries = 3;
+  private retryableErrors = [
+    'timeout', 'network', 'rate_limit', 'overload', 'internal_error'
+  ];
+
+  constructor(registry: ProviderRegistry) {
+    this.registry = registry;
+  }
+
+  /**
+   * تنفيذ العملية مع Fallback تلقائي
+   */
+  async executeWithFallback(
+    primaryProvider: string,
+    operation: (provider: IAIProvider) => Promise<UnifiedResponse>,
+    context: any = {}
+  ): Promise<UnifiedResponse> {
+    const providers = this.getFallbackOrder(primaryProvider, context);
+    let lastError: Error;
+
+    for (let i = 0; i < providers.length; i++) {
+      const providerName = providers[i];
+      
+      try {
+        const provider = this.registry.getProvider(providerName);
+        const result = await this.executeWithRetry(provider, operation, i + 1);
+        
+        console.log(`✅ Success with provider: ${providerName}`);
+        return result;
+        
+      } catch (error: any) {
+        console.log(`❌ Provider ${providerName} failed: ${error.message}`);
+        lastError = error;
+        
+        // إذا لم يكن الخطأ قابلاً لإعادة المحاولة، توقف
+        if (!this.isRetryableError(error) || i === providers.length - 1) {
+          break;
+        }
+        
+        // انتقل للمزود التالي
+        console.log(`🔄 Falling back to next provider...`);
+      }
+    }
+
+    throw new Error(`All providers failed. Last error: ${lastError?.message}`);
+  }
+
+  /**
+   * تنفيذ مع إعادة محاولة لنفس المزود
+   */
+  private async executeWithRetry(
+    provider: IAIProvider,
+    operation: (provider: IAIProvider) => Promise<UnifiedResponse>,
+    attempt: number
+  ): Promise<UnifiedResponse> {
+    try {
+      return await operation(provider);
+    } catch (error: any) {
+      // إذا كانت المحاولة الأخيرة أو الخطأ غير قابل للإعادة، ارمِ الخطأ
+      if (attempt >= this.maxRetries || !this.isRetryableError(error)) {
+        throw error;
+      }
+      
+      // انتظر ثم حاول مرة أخرى
+      const delay = this.calculateRetryDelay(attempt);
+      console.log(`⏳ Retry attempt ${attempt} after ${delay}ms...`);
+      await this.sleep(delay);
+      
+      return this.executeWithRetry(provider, operation, attempt + 1);
+    }
+  }
+
+  /**
+   * ترتيب Fallback الذكي
+   */
+  private getFallbackOrder(primaryProvider: string, context: any): string[] {
+    const allProviders = this.registry.getAvailableProviders();
+    const otherProviders = allProviders.filter(p => p !== primaryProvider);
+    
+    // إذا كانت المهمة تحتاج أدوات، نفضل المزودين الذين يدعمونها
+    if (context.requiresTools) {
+      const providersWithTools = otherProviders.filter(provider => {
+        const capabilities = this.registry.getProvider(provider).getCapabilities();
+        return capabilities.supportsTools;
+      });
+      
+      const providersWithoutTools = otherProviders.filter(provider => 
+        !providersWithTools.includes(provider)
+      );
+      
+      return [primaryProvider, ...providersWithTools, ...providersWithoutTools];
+    }
+    
+    // ترتيب عادي
+    return [primaryProvider, ...otherProviders];
+  }
+
+  /**
+   * التحقق إذا كان الخطأ قابلاً للإعادة
+   */
+  private isRetryableError(error: any): boolean {
+    const errorMessage = error.message.toLowerCase();
+    return this.retryableErrors.some(retryableError => 
+      errorMessage.includes(retryableError)
+    );
+  }
+
+  /**
+   * حساب وقت الانتظار للإعادة
+   */
+  private calculateRetryDelay(attempt: number): number {
+    // Exponential backoff: 1s, 2s, 4s, ...
+    return Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * إحصائيات Fallback
+   */
+  getTotalRequests(): number {
+    // سيتم تنفيذ هذا مع نظام المراقبة
+    return 0;
+  }
+
+  getSuccessRate(): number {
+    // سيتم تنفيذ هذا مع نظام المراقبة
+    return 1;
+  }
+}
+4. التكامل مع Agent Loop الحالي
+integration/agent-loop-integration.ts
+
+typescript
+import { IntelligentRouter } from '../router/intelligent-router';
+import { ProviderRegistry } from '../registry/provider-registry';
+import { UnifiedMessage, UnifiedTool } from '../interfaces';
+
+/**
+ * تكامل النظام الجديد مع Agent Loop الحالي
+ */
+export class AgentLoopIntegration {
+  private router: IntelligentRouter;
+
+  constructor(router: IntelligentRouter) {
+    this.router = router;
+  }
+
+  /**
+   * استبدال الدالة الحالية للـ Agent Loop
+   */
+  async executeAgentLoop(
+    messages: any[], // الرسائل بالصيغة الحالية
+    tools: any[] = [], // الأدوات بالصيغة الحالية
+    options: any = {}
+  ): Promise<any> {
+    try {
+      // تحويل الرسائل للصيغة الموحدة
+      const unifiedMessages = this.convertToUnifiedMessages(messages);
+      const unifiedTools = this.convertToUnifiedTools(tools);
+
+      let response;
+      
+      if (unifiedTools.length > 0) {
+        // استخدام الأدوات إذا كانت متاحة
+        response = await this.router.chatWithTools(unifiedMessages, unifiedTools, {
+          providerPreference: options.provider,
+          budget: options.budget,
+          speedPriority: options.speedPriority
+        });
+      } else {
+        // محادثة عادية
+        response = await this.router.chat(unifiedMessages, {
+          providerPreference: options.provider,
+          budget: options.budget,
+          speedPriority: options.speedPriority
+        });
+      }
+
+      // تحويل النتيجة للصيغة الحالية
+      return this.convertFromUnifiedResponse(response);
+      
+    } catch (error) {
+      console.error('Agent Loop Integration Error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * تحويل الرسائل الحالية للصيغة الموحدة
+   */
+  private convertToUnifiedMessages(messages: any[]): UnifiedMessage[] {
+    return messages.map(msg => ({
+      role: this.mapRole(msg.role),
+      content: msg.content,
+      metadata: {
+        agentType: msg.agentType,
+        timestamp: msg.timestamp,
+        ...(msg.metadata || {})
+      }
+    }));
+  }
+
+  /**
+   * تحويل الأدوات الحالية للصيغة الموحدة
+   */
+  private convertToUnifiedTools(tools: any[]): UnifiedTool[] {
+    return tools.map(tool => ({
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.parameters || {},
+      execute: tool.execute || (() => Promise.resolve({}))
+    }));
+  }
+
+  /**
+   * تحويل النتيجة الموحدة للصيغة الحالية
+   */
+  private convertFromUnifiedResponse(response: any): any {
+    return {
+      content: response.content,
+      tool_calls: response.toolCalls,
+      metadata: {
+        provider: response.metadata.provider,
+        model: response.metadata.model,
+        cost: response.metadata.cost,
+        tokens: response.metadata.tokens,
+        duration: response.metadata.duration,
+        ...response.metadata
+      }
+    };
+  }
+
+  /**
+   * تحويل الأدوار بين الصيغ المختلفة
+   */
+  private mapRole(role: string): 'system' | 'user' | 'assistant' {
+    const roleMap: Record<string, 'system' | 'user' | 'assistant'> = {
+      'system': 'system',
+      'user': 'user', 
+      'assistant': 'assistant',
+      'ai': 'assistant',
+      'human': 'user'
+    };
+    
+    return roleMap[role] || 'user';
+  }
+
+  /**
+   * الحصول على إحصائيات النظام للت debugging
+   */
+  getIntegrationStats(): any {
+    return this.router.getRouterStats();
+  }
+}
+5. التكامل مع CLI
+integration/cli-integration.ts
+
+typescript
+import { IntelligentRouter } from '../router/intelligent-router';
+import { ProviderRegistry } from '../registry/provider-registry';
+import { createDefaultProviderRegistry } from '../index';
+
+/**
+ * تكامل النظام الجديد مع CLI الحالي
+ */
+export class CLIIntegration {
+  private router: IntelligentRouter;
+  private registry: ProviderRegistry;
+
+  constructor() {
+    this.registry = createDefaultProviderRegistry();
+    this.router = new IntelligentRouter(this.registry);
+  }
+
+  /**
+   * تهيئة النظام الجديد في CLI
+   */
+  initialize(): void {
+    console.log('🚀 Initializing Unified Provider System...');
+    
+    const availableProviders = this.registry.getAvailableProviders();
+    console.log(`✅ Available providers: ${availableProviders.join(', ')}`);
+    
+    // التحقق من صحة جميع المزودين
+    this.validateProviders().then(validations => {
+      console.log('🔍 Provider validations:');
+      Object.entries(validations).forEach(([provider, isValid]) => {
+        console.log(`   ${provider}: ${isValid ? '✅' : '❌'}`);
+      });
+    });
+  }
+
+  /**
+   * استبدال دالة المحادثة الحالية في CLI
+   */
+  async handleChatCommand(
+    userInput: string, 
+    conversationHistory: any[] = [],
+    options: any = {}
+  ): Promise<any> {
+    const messages = this.buildMessages(userInput, conversationHistory);
+    
+    try {
+      const response = await this.router.chat(messages, {
+        providerPreference: options.provider,
+        budget: options.budget,
+        speedPriority: options.speedPriority
+      });
+
+      // تحديث سجل المحادثة
+      const newConversation = [
+        ...conversationHistory,
+        { role: 'user', content: userInput },
+        { role: 'assistant', content: response.content }
+      ];
+
+      return {
+        response: response.content,
+        conversation: newConversation,
+        metadata: response.metadata
+      };
+      
+    } catch (error) {
+      console.error('❌ Chat command failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * بناء الرسائل من المدخلات وسجل المحادثة
+   */
+  private buildMessages(userInput: string, conversationHistory: any[]): any[] {
+    const messages = [];
+    
+    // إضافة سجل المحادثة السابق
+    conversationHistory.forEach(msg => {
+      messages.push({
+        role: msg.role,
+        content: msg.content
+      });
+    });
+    
+    // إضافة المدخل الجديد
+    messages.push({
+      role: 'user',
+      content: userInput
+    });
+    
+    return messages;
+  }
+
+  /**
+   * أمر جديد لتبديل المزود يدوياً
+   */
+  async switchProvider(providerName: string): Promise<boolean> {
+    try {
+      const provider = this.registry.getProvider(providerName);
+      const isValid = await provider.validate();
+      
+      if (isValid) {
+        console.log(`✅ Switched to provider: ${providerName}`);
+        return true;
+      } else {
+        console.log(`❌ Provider ${providerName} is not valid`);
+        return false;
+      }
+    } catch (error) {
+      console.log(`❌ Failed to switch to provider: ${providerName}`);
+      return false;
+    }
+  }
+
+  /**
+   * عرض إحصائيات النظام
+   */
+  showStats(): any {
+    return this.router.getRouterStats();
+  }
+
+  /**
+   * التحقق من صحة جميع المزودين
+   */
+  private async validateProviders(): Promise<Record<string, boolean>> {
+    return this.registry.validateAllProviders();
+  }
+}
+🔧 التهيئة النهائية للنظام
+تحديث index.ts الرئيسي:
+
+typescript
+// ... الكود السابق ...
+
+// تصدير المكونات الجديدة
+export { IntelligentRouter } from './router/intelligent-router';
+export { ProviderSelector } from './router/provider-selector';
+export { FallbackManager } from './router/fallback-manager';
+export { AgentLoopIntegration } from './integration/agent-loop-integration';
+export { CLIIntegration } from './integration/cli-integration';
+
+// دالة التهيئة الكاملة
+export function createCompleteAISystem(): {
+  router: IntelligentRouter;
+  integration: AgentLoopIntegration;
+  cli: CLIIntegration;
+} {
+  const registry = createDefaultProviderRegistry();
+  const router = new IntelligentRouter(registry);
+  const integration = new AgentLoopIntegration(router);
+  const cli = new CLIIntegration();
+
+  return { router, integration, cli };
+}
+
+// دالة سريعة للاستخدام المباشر
+export const aiSystem = createCompleteAISystem();

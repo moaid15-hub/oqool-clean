@@ -8,6 +8,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { createAutoFixSystem } from './auto-fix-system.js';
 import { hasApiKey } from './auth.js';
+import { ui } from './ui.js';
 
 /**
  * إضافة أمر auto-fix للـ CLI
@@ -54,7 +55,7 @@ async function handleAutoFix(file: string, options: any) {
     }
 
     // عرض البانر
-    displayBanner();
+    ui.printHeader('🔧 نظام الإصلاح التلقائي المتقدم', 'Oqool Auto-Fix System');
 
     // تحديد المراحل
     let skipStages: string[] = [];
@@ -117,14 +118,9 @@ async function handleAutoFix(file: string, options: any) {
 }
 
 /**
- * عرض البانر
+ * عرض البانر - تم نقلها إلى ui.printHeader()
  */
-function displayBanner() {
-  console.log(chalk.cyan('\n╔════════════════════════════════════════════════╗'));
-  console.log(chalk.cyan('║     🔧 نظام الإصلاح التلقائي المتقدم        ║'));
-  console.log(chalk.cyan('║          Oqool Auto-Fix System               ║'));
-  console.log(chalk.cyan('╚════════════════════════════════════════════════╝\n'));
-}
+// تم حذف displayBanner() واستبدالها بـ ui.printHeader()
 
 /**
  * عرض المراحل المتاحة

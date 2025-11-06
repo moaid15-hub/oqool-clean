@@ -1,116 +1,135 @@
-// branding.ts - النسخة النهائية
+// branding.ts - النسخة النظيفة والاحترافية
+// ============================================
+// استبدل الملف القديم بهذا
+// ============================================
 
 import chalk from 'chalk';
+import gradient from 'gradient-string';
 
+// ============================================
+// Logo بسيط وأنيق
+// ============================================
 export const BRANDING = {
-  // شعار ثلاثي الأبعاد بدون إطار - أزرق وأبيض
   logo: `
-        ${chalk.cyan('██████')}   ${chalk.cyan('██████')}   ${chalk.cyan('██████')}   ${chalk.cyan('██████')}  ${chalk.cyan('██')}
-       ${chalk.cyan('██')}${chalk.white('    ██')} ${chalk.cyan('██')}${chalk.white('    ██')} ${chalk.cyan('██')}${chalk.white('    ██')} ${chalk.cyan('██')}${chalk.white('    ██')} ${chalk.cyan('██')}
-       ${chalk.cyan('██')}${chalk.white('    ██')} ${chalk.cyan('██')}${chalk.white('    ██')} ${chalk.cyan('██')}${chalk.white('    ██')} ${chalk.cyan('██')}${chalk.white('    ██')} ${chalk.cyan('██')}
-       ${chalk.cyan('██')}${chalk.white('    ██')} ${chalk.cyan('██')}${chalk.white('  ████')} ${chalk.cyan('██')}${chalk.white('    ██')} ${chalk.cyan('██')}${chalk.white('    ██')} ${chalk.cyan('██')}
-        ${chalk.cyan('██████')}   ${chalk.cyan('████ ██')}  ${chalk.cyan('██████')}   ${chalk.cyan('██████')}  ${chalk.cyan('███████')}
+ ██████╗  ██████╗  ██████╗  ██████╗ ██╗     
+██╔═══██╗██╔═══██╗██╔═══██╗██╔═══██╗██║     
+██║   ██║██║   ██║██║   ██║██║   ██║██║     
+██║   ██║██║▄▄ ██║██║   ██║██║   ██║██║     
+╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝███████╗
+ ╚═════╝  ╚══▀▀═╝  ╚═════╝  ╚═════╝ ╚══════╝
 `,
 
-  // صندوق المعلومات - أبيض
-  infoBox: chalk.white(`
-   ╔═══════════════════════════════════════════════════════╗
-   ║                                                       ║
-   ║   OQOOLAI CODER  │  أداة البرمجة الذكية             ║
-   ║                                                       ║
-   ║   النسخة: 5.0.0  │  مدعوم بالذكاء الاصطناعي        ║
-   ║   oqoolai.com    │  Oqool AI Team                    ║
-   ║                                                       ║
-   ╚═══════════════════════════════════════════════════════╝
-`),
-
-  // صندوق الأوامر - أبيض
-  commandsBox: chalk.white(`
-   ╔═══════════════════════════════════════════════════════╗
-   ║                                                       ║
-   ║  أوامر الحفظ والحماية                                ║
-   ║                                                       ║
-   ║    init          تهيئة المشروع                       ║
-   ║    snapshot      حفظ نقطة استعادة                    ║
-   ║    rollback      التراجع لنقطة سابقة                 ║
-   ║    diff          مقارنة التغييرات                    ║
-   ║    restore       استعادة ملف                         ║
-   ║    history       عرض السجل                           ║
-   ║    suggestions   اقتراحات ذكية                      ║
-   ║    timeline      الخط الزمني                         ║
-   ║    list / ls     عرض كل النقاط                      ║
-   ║    backup        نسخة احتياطية كاملة                ║
-   ║    analytics     تحليل وإحصائيات                    ║
-   ║    archaeology   تاريخ المشروع المفصّل              ║
-   ║                                                       ║
-   ╚═══════════════════════════════════════════════════════╝
-`),
-
-  // تحذير الأمان - أصفر
-  warningBox: chalk.yellow(`
-   ⚠️  للعمل بأمان: اعمل نسخة من الملف يدوياً وضعها بمكان آمن
-`),
+  tagline: 'AI-Powered Arabic-First IDE',
+  version: 'v5.0.0',
+  website: 'oqoolai.com'
 };
 
-// عرض الشاشة الرئيسية
-export function displayWelcome() {
+// ============================================
+// عرض مبسط - فقط عند الضرورة
+// ============================================
+export function displayWelcome(): void {
   console.clear();
-  console.log(BRANDING.logo);
-  console.log('');
-  console.log('');
-  console.log(BRANDING.infoBox);
-  console.log('');
-  console.log('');
-  console.log(BRANDING.commandsBox);
-  console.log('');
-  console.log('');
-  console.log(BRANDING.warningBox);
-  console.log('');
+  
+  // Logo ملوّن
+  console.log(gradient.pastel.multiline(BRANDING.logo));
+  console.log(chalk.gray(`         ${BRANDING.tagline}\n`));
 }
 
-// رسائل الحالة - ملونة
-export function showSuccess(msg: string) {
-  console.log(chalk.green(`\n   ✓ ${msg}\n`));
+// ============================================
+// عرض سريع (بدون logo)
+// ============================================
+export function displayQuickStart(): void {
+  console.log(chalk.cyan(`\n🚀 Oqool AI ${BRANDING.version}`));
+  console.log(chalk.gray(`   ${BRANDING.tagline}\n`));
 }
 
-export function showError(msg: string) {
-  console.log(chalk.red(`\n   ✗ ${msg}\n`));
+// ============================================
+// رسائل الحالة - مبسطة
+// ============================================
+export function showSuccess(msg: string): void {
+  console.log(chalk.green(`✓ ${msg}`));
 }
 
-export function showInfo(msg: string) {
-  console.log(chalk.white(`\n   ℹ ${msg}\n`));
+export function showError(msg: string): void {
+  console.log(chalk.red(`✗ ${msg}`));
 }
 
-// Loading spinner - أبيض
+export function showWarning(msg: string): void {
+  console.log(chalk.yellow(`⚠ ${msg}`));
+}
+
+export function showInfo(msg: string): void {
+  console.log(chalk.blue(`ℹ ${msg}`));
+}
+
+// ============================================
+// Spinner بسيط
+// ============================================
 export function createSpinner(message: string) {
   const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
   let i = 0;
 
   const interval = setInterval(() => {
-    process.stdout.write(chalk.white(`\r   ${frames[i]} ${message}...`));
+    process.stdout.write(chalk.cyan(`\r${frames[i]} ${message}...`));
     i = (i + 1) % frames.length;
   }, 80);
 
   return {
     stop: (finalMessage?: string) => {
       clearInterval(interval);
-      process.stdout.write('\r\x1b[K');
-      if (finalMessage) showSuccess(finalMessage);
+      process.stdout.write('\r\x1b[K'); // Clear line
+      if (finalMessage) {
+        showSuccess(finalMessage);
+      }
     },
+    
     fail: (errorMessage?: string) => {
       clearInterval(interval);
       process.stdout.write('\r\x1b[K');
-      if (errorMessage) showError(errorMessage);
+      if (errorMessage) {
+        showError(errorMessage);
+      }
     },
+    
+    update: (newMessage: string) => {
+      message = newMessage;
+    }
   };
 }
 
-// Progress bar - أبيض مع أزرق
-export function showProgress(percent: number, label: string) {
-  const width = 40;
+// ============================================
+// Progress bar مبسط
+// ============================================
+export function showProgress(percent: number, label?: string): void {
+  const width = 30;
   const filled = Math.round((percent / 100) * width);
   const empty = width - filled;
-  const bar = chalk.cyan('█'.repeat(filled)) + chalk.dim('░'.repeat(empty));
-
-  console.log(chalk.white(`   ${label}: [${bar}] ${percent}%`));
+  const bar = chalk.cyan('█'.repeat(filled)) + chalk.gray('░'.repeat(empty));
+  
+  const text = label ? `${label}: ` : '';
+  process.stdout.write(`\r${text}[${bar}] ${percent}%`);
+  
+  if (percent === 100) {
+    console.log(''); // New line when complete
+  }
 }
+
+// ============================================
+// Helper - لا تعرض boxes ضخمة
+// ============================================
+export function showTip(message: string): void {
+  console.log(chalk.yellow(`\n💡 ${message}\n`));
+}
+
+export function showNextSteps(steps: string[]): void {
+  console.log(chalk.cyan('\n🎯 الخطوات التالية:\n'));
+  steps.forEach((step, i) => {
+    console.log(chalk.white(`  ${i + 1}. ${step}`));
+  });
+  console.log('');
+}
+
+// ============================================
+// REMOVED: commandsBox, infoBox, warningBox
+// هذه كانت تسبب الفوضى - محذوفة تماماً
+// ============================================

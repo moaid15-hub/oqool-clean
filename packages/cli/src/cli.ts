@@ -7,10 +7,6 @@ import dotenv from 'dotenv';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { BRANDING } from './branding.js';
-
-// تحميل متغيرات البيئة
-dotenv.config();
 import {
   saveConfig,
   loadConfig,
@@ -20,6 +16,7 @@ import {
   hasApiKey,
 } from './auth.js';
 import { OqoolAPIClient, createClientFromConfig } from './api-client.js';
+import { createSmartClient } from './unified-client-factory.js';
 import { FileManager, createFileManager } from './file-manager.js';
 import { createAgentClient } from './agent-client.js';
 import { ui } from './ui.js';
@@ -50,6 +47,7 @@ import { createGodMode } from '@oqool/shared/core';
 import { createAnalytics } from './analytics.js';
 import { createSelfLearningSystem } from './self-learning-system.js';
 import { registerNewCommands } from './cli-new-commands.js';
+import { registerMultiProviderCommand } from './cli-multi-provider-command.js';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -57,6 +55,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8'));
+
+// تحميل .env من مجلد المشروع (3 levels up from dist/cli.js)
+const projectRoot = join(__dirname, '../../..');
+dotenv.config({ path: join(projectRoot, '.env') });
 
 const program = new Command();
 
@@ -174,15 +176,13 @@ program
   .option('--no-git', 'تعطيل Git integration')
   .action(async (prompt: string, options) => {
     try {
-      // التحقق من تسجيل الدخول
-      if (!(await hasApiKey())) {
-        ui.warning('يجب تسجيل الدخول أولاً');
-        console.log(chalk.cyan('استخدم: oqool-code login <API_KEY>\n'));
+      // استخدام Smart Client الذي يدعم جميع المزودين
+      const client = await createSmartClient();
+      if (!client) {
+        console.log(chalk.red('\n❌ لا يمكن الاتصال بأي AI Provider'));
+        console.log(chalk.yellow('💡 تأكد من وجود API Keys في ملف .env\n'));
         return;
       }
-
-      const client = await createClientFromConfig();
-      if (!client) return;
 
       const fileManager = createFileManager();
 
@@ -333,17 +333,46 @@ program
   .description('بدء محادثة تفاعلية مع AI مع أدوات حقيقية')
   .action(async () => {
     try {
-      // التحقق من وجود ANTHROPIC_API_KEY
-      if (!process.env.ANTHROPIC_API_KEY) {
-        ui.warning('ANTHROPIC_API_KEY غير موجود');
-        console.log(chalk.cyan('أضف المفتاح في ملف .env:'));
-        console.log(chalk.gray('ANTHROPIC_API_KEY=sk-ant-...\n'));
+      // التحقق من وجود أي API Key
+      const hasAnyKey = !!(
+        process.env.GEMINI_API_KEY ||
+        process.env.DEEPSEEK_API_KEY ||
+        process.env.OPENAI_API_KEY ||
+        process.env.ANTHROPIC_API_KEY ||
+        process.env.USE_OLLAMA === 'true'
+      );
+
+      if (!hasAnyKey) {
+        ui.warning('لا يوجد أي API Key متاح');
+        console.log(chalk.cyan('\n💡 أضف واحد من المفاتيح التالية في ملف .env:\n'));
+        console.log(chalk.gray('   GEMINI_API_KEY=...      (موصى به - الأسرع!)'));
+        console.log(chalk.gray('   DEEPSEEK_API_KEY=...    (رخيص)'));
+        console.log(chalk.gray('   OPENAI_API_KEY=...      (متوازن)'));
+        console.log(chalk.gray('   ANTHROPIC_API_KEY=...   (الأذكى)'));
+        console.log(chalk.gray('   USE_OLLAMA=true         (مجاني - محلي)\n'));
         return;
       }
 
-      // إنشاء Agent مع Tools
-      const agent = createAgentClient({
-        apiKey: process.env.ANTHROPIC_API_KEY,
+      // اختيار أي API Key متاح
+      const apiKey = process.env.GEMINI_API_KEY ||
+                     process.env.DEEPSEEK_API_KEY ||
+                     process.env.OPENAI_API_KEY ||
+                     process.env.ANTHROPIC_API_KEY ||
+                     'ollama_key';
+
+      // تحديد المزود المستخدم
+      let provider = 'anthropic';
+      if (process.env.GEMINI_API_KEY) provider = 'gemini';
+      else if (process.env.DEEPSEEK_API_KEY) provider = 'deepseek';
+      else if (process.env.OPENAI_API_KEY) provider = 'openai';
+      else if (process.env.USE_OLLAMA === 'true') provider = 'ollama';
+
+      ui.info(`استخدام ${provider} API`);
+
+      // استخدام MultiProviderAgent بدلاً من AgentClient
+      const { createMultiProviderAgent } = await import('./multi-provider-agent.js');
+      const agent = createMultiProviderAgent({
+        provider: provider as any,
         workingDirectory: process.cwd(),
         enablePlanning: true,
         enableContext: true,
@@ -352,13 +381,26 @@ program
 
       ui.printBanner();
 
-      console.log('');
-      console.log('');
-      console.log(BRANDING.commandsBox);
-      console.log('');
-      console.log('');
-      console.log(BRANDING.warningBox);
-      console.log('');
+      // قائمة الأوامر
+      ui.printSection('أوامر الحفظ والحماية');
+      ui.printList([
+        'init          - تهيئة المشروع',
+        'snapshot      - حفظ نقطة استعادة',
+        'rollback      - التراجع لنقطة سابقة',
+        'diff          - مقارنة التغييرات',
+        'restore       - استعادة ملف',
+        'history       - عرض السجل',
+        'suggestions   - اقتراحات ذكية',
+        'timeline      - الخط الزمني',
+        'list / ls     - عرض كل النقاط',
+        'backup        - نسخة احتياطية كاملة',
+        'analytics     - تحليل وإحصائيات',
+        'archaeology   - تاريخ المشروع المفصّل'
+      ], { bullet: '   ', indent: 0 });
+
+      ui.newLine();
+      ui.printWarning('للعمل بأمان: اعمل نسخة من الملف يدوياً وضعها بمكان آمن');
+
       console.log(
         chalk.green.bold('   💬 محادثة تفاعلية مع Agent Tools') +
           chalk.gray(' - اكتب ') +
@@ -395,7 +437,7 @@ program
           console.log(chalk.bold.red('\n🔥 مهمة معقدة مكتشفة - تفعيل GOD MODE!\n'));
 
           const team = createAgentTeam({
-            apiKey: process.env.ANTHROPIC_API_KEY,
+            apiKey: apiKey!, // استخدم apiKey الموجود
             verbose: false, // quiet mode في chat
           });
 
@@ -2972,6 +3014,9 @@ program
 
 // تسجيل الأوامر الجديدة
 registerNewCommands(program);
+
+// تسجيل أوامر Multi-Provider
+registerMultiProviderCommand(program);
 
 // معالجة الأوامر
 export function runCLI(): void {

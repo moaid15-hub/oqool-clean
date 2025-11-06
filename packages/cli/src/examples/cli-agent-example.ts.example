@@ -4,16 +4,17 @@
 // ============================================
 
 import { Command } from 'commander';
-import { ui } from './ui';
+import { ui } from '../ui';
+import chalk from 'chalk';
 import { UnifiedAIAdapter } from '@oqool/shared/ai-gateway';
 import {
   ArchitectAgent,
-  DeveloperAgent,
+  BackendDeveloperAgent,
   ReviewerAgent,
   SecurityAgent,
   TesterAgent,
-  OptimizerAgent,
-  DocumenterAgent
+  OptimizerAgent
+  // DocumenterAgent // Not available yet
 } from '@oqool/shared/agents';
 
 // ============================================
@@ -31,15 +32,15 @@ export class AgentManager {
   }
 
   private initializeAgents(): void {
-    // Initialize all 20 agents
+    // Initialize available agents
     this.agents.set('architect', new ArchitectAgent(this.aiAdapter));
-    this.agents.set('developer', new DeveloperAgent(this.aiAdapter));
+    this.agents.set('developer', new BackendDeveloperAgent(this.aiAdapter));
     this.agents.set('reviewer', new ReviewerAgent(this.aiAdapter));
     this.agents.set('security', new SecurityAgent(this.aiAdapter));
     this.agents.set('tester', new TesterAgent(this.aiAdapter));
     this.agents.set('optimizer', new OptimizerAgent(this.aiAdapter));
-    this.agents.set('documenter', new DocumenterAgent(this.aiAdapter));
-    // ... 13 more agents
+    // this.agents.set('documenter', new DocumenterAgent(this.aiAdapter)); // Not available yet
+    // ... more agents can be added
   }
 
   getAgent(name: string): any {

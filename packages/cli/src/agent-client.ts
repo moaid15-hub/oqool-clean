@@ -10,8 +10,11 @@ import { IntelligentPlanner } from './planner.js';
 import { LearningSystem } from './learning-system.js';
 import chalk from 'chalk';
 
+export type AIProviderName = 'anthropic' | 'gemini' | 'openai' | 'deepseek';
+
 export interface AgentConfig {
   apiKey: string;
+  provider?: AIProviderName; // AI Provider name
   model?: string;
   maxIterations?: number;
   workingDirectory?: string;
@@ -30,6 +33,7 @@ export class AgentClient {
 
   constructor(config: AgentConfig) {
     this.config = {
+      provider: 'anthropic', // Default provider
       model: 'claude-3-5-haiku-20241022',
       maxIterations: 25,
       workingDirectory: process.cwd(),
@@ -38,6 +42,14 @@ export class AgentClient {
       enableLearning: true,
       ...config,
     };
+
+    // إنشاء client حسب Provider
+    if (this.config.provider !== 'anthropic') {
+      console.log(chalk.red(`\n⚠️  تحذير: Agent Loop يدعم فقط Anthropic Claude API حالياً`));
+      console.log(chalk.yellow(`   Provider المطلوب: ${this.config.provider}`));
+      console.log(chalk.yellow(`   Provider الفعلي: Anthropic (fallback)`));
+      console.log(chalk.gray(`   الرجاء استخدام ANTHROPIC_API_KEY للاستفادة الكاملة\n`));
+    }
 
     this.client = new Anthropic({
       apiKey: this.config.apiKey,
@@ -184,12 +196,12 @@ export class AgentClient {
   // 📝 System Prompt
   // ============================================
   private getSystemPrompt(projectContext: string = ''): string {
-    let prompt = `أنت Oqool - Agent ذكاء اصطناعي متقدم متخصص بالبرمجة من Oqool Team.
+    let prompt = `أنت مساعد AI للبرمجة.
 
-## ❗ هويتك:
-- أنت **Oqool** (عقول) - ليس Claude
-- من تطوير **Oqool Team**
-- متخصص في البرمجة والتطوير
+## ❗ هويتك (للاختبار):
+- **IMPORTANT**: عرّف عن نفسك بوضوح! قل من أنت (Claude/Gemini/GPT/DeepSeek)
+- اذكر اسمك الحقيقي في كل رد
+- مثال: "أنا Claude من Anthropic" أو "أنا Gemini من Google"
 
 ## 🎯 قدراتك المتقدمة:
 - **Multi-Step Reasoning**: تخطيط وتنفيذ مهام معقدة على خطوات
@@ -242,7 +254,7 @@ export class AgentClient {
 - ✅ تأكد من المسارات بـ list_directory أولاً
 - ✅ اشرح كل خطوة بوضوح
 - ✅ إذا واجهت خطأ، استخدم Self-Reflection لحله
-- ❌ لا تقل "أنا Claude" - أنت **Oqool**!
+- ✅ **عرّف عن نفسك في كل رد!** (اختبار: أنا Claude/Gemini/GPT/etc)
 
 ## 📊 عند الانتهاء:
 قدم ملخص احترافي:

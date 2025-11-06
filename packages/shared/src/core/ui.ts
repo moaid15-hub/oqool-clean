@@ -42,10 +42,9 @@ export class UI {
   // عرض شعار احترافي مع ASCII Art
   showBanner(): void {
     // استخدام نظام Branding الجديد
-    console.log(BRANDING.logo);
-    console.log('');
-    console.log('');
-    console.log(BRANDING.infoBox);
+    console.log(gradient.pastel.multiline(BRANDING.logo));
+    console.log(chalk.gray(`         ${BRANDING.tagline}`));
+    console.log(chalk.gray(`         ${BRANDING.version} • ${BRANDING.website}\n`));
   }
 
   // رسالة ترحيب محسّنة

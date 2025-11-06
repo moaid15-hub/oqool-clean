@@ -76,8 +76,8 @@ export * from './code-reviewer.js'; // ✅ Fixed - CodeReviewResult
 export * from './incremental-analyzer.js';
 
 // CLI & Commands
-export * from './cli.js';
-export * from './cli-agent.js';
+// export * from './cli.js'; // معطل - CLI تستخدم من packages/cli فقط
+// export * from './cli-agent.js'; // معطل - يتعارض مع cli.ts
 export * from './cli-new-commands.js';
 
 // Cloud & Collaboration

@@ -1,4 +1,0 @@
-#!/usr/bin/env node
-// ogr - اختصار لـ oqool review
-process.argv.splice(2, 0, 'review');
-require('./oqool.js');

@@ -1,0 +1,2 @@
+#!/bin/bash
+node "/home/amir/Dokumente/coderoqool/packages/cli/dist/index.js" "$@"

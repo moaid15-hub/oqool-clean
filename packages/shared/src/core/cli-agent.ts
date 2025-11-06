@@ -8,8 +8,6 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { loadConfig } from './auth.js';
 import { createAgentClient } from './agent-client.js';
-import boxen from 'boxen';
-import gradient from 'gradient-string';
 
 const program = new Command();
 
@@ -24,8 +22,8 @@ program
   .option('-d, --directory <path>', 'مجلد العمل', process.cwd())
   .action(async (prompt: string | undefined, options: any) => {
     try {
-      // عرض Banner
-      displayBanner();
+      // البانر يُطبع من cli.ts الآن
+      // displayBanner(); // تم حذفه
 
       // تحميل API Key
       const config = await loadConfig();
@@ -87,24 +85,9 @@ async function interactiveMode(agent: any): Promise<void> {
 }
 
 // ============================================
-// 🎨 Banner
+// 🎨 Banner - تم نقله إلى ui.printBanner()
 // ============================================
-function displayBanner(): void {
-  const title = gradient.pastel.multiline(
-    [
-      '╔══════════════════════════════════════════════════════════╗',
-      '║                                                          ║',
-      '║     🧠  Oqool - Agent Edition  🚀                    ║',
-      '║                                                          ║',
-      '║     Coding Agent مع أدوات حقيقية                        ║',
-      '║     By: Oqool Team                                       ║',
-      '║                                                          ║',
-      '╚══════════════════════════════════════════════════════════╝',
-    ].join('\n')
-  );
-
-  console.log('\n' + title + '\n');
-}
+// تم حذف displayBanner() - الآن نستخدم ui.printBanner()
 
 // ============================================
 // 🔑 أمر تسجيل الدخول
@@ -135,17 +118,8 @@ program
       return;
     }
 
-    console.log(
-      boxen(
-        chalk.green('✅ مسجل دخول\n') + chalk.gray(`API Key: ${config.apiKey.slice(0, 20)}...`),
-        {
-          padding: 1,
-          margin: 1,
-          borderStyle: 'round',
-          borderColor: 'green',
-        }
-      )
-    );
+    console.log(chalk.green('\n✅ مسجل دخول'));
+    console.log(chalk.gray(`API Key: ${config.apiKey.slice(0, 20)}...\n`));
   });
 
 // ============================================

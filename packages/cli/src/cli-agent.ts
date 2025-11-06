@@ -8,8 +8,7 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { loadConfig } from './auth.js';
 import { createAgentClient } from './agent-client.js';
-import boxen from 'boxen';
-import gradient from 'gradient-string';
+import { displayWelcome } from './branding.js';
 
 const program = new Command();
 
@@ -25,7 +24,7 @@ program
   .action(async (prompt: string | undefined, options: any) => {
     try {
       // عرض Banner
-      displayBanner();
+      displayWelcome();
 
       // تحميل API Key
       const config = await loadConfig();
@@ -87,24 +86,9 @@ async function interactiveMode(agent: any): Promise<void> {
 }
 
 // ============================================
-// 🎨 Banner
+// 🎨 Banner - الآن يستخدم ui.printBanner()
 // ============================================
-function displayBanner(): void {
-  const title = gradient.pastel.multiline(
-    [
-      '╔══════════════════════════════════════════════════════════╗',
-      '║                                                          ║',
-      '║     🧠  Oqool - Agent Edition  🚀                    ║',
-      '║                                                          ║',
-      '║     Coding Agent مع أدوات حقيقية                        ║',
-      '║     By: Oqool Team                                       ║',
-      '║                                                          ║',
-      '╚══════════════════════════════════════════════════════════╝',
-    ].join('\n')
-  );
-
-  console.log('\n' + title + '\n');
-}
+// تم نقلها إلى ui.ts
 
 // ============================================
 // 🔑 أمر تسجيل الدخول
@@ -135,16 +119,9 @@ program
       return;
     }
 
-    console.log(
-      boxen(
-        chalk.green('✅ مسجل دخول\n') + chalk.gray(`API Key: ${config.apiKey.slice(0, 20)}...`),
-        {
-          padding: 1,
-          margin: 1,
-          borderStyle: 'round',
-          borderColor: 'green',
-        }
-      )
+    ui.printSuccess(
+      'مسجل دخول',
+      `API Key: ${config.apiKey.slice(0, 20)}...`
     );
   });
 

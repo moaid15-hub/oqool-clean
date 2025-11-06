@@ -1,4 +1,0 @@
-#!/usr/bin/env node
-// ogg - اختصار لـ oqool git
-process.argv.splice(2, 0, 'git');
-require('./oqool.js');
