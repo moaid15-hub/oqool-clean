@@ -1,0 +1,412 @@
+[
+  {
+    "id": "err_1762345288770_mti74o7",
+    "timestamp": 1762345288770,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpjVQSwgWE5eDXLZLBak\"}",
+    "context": {
+      "command": "/home/amir/Dokumente/oqool-clean ادخل عليه"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762345323598_2ssxj9n",
+    "timestamp": 1762345323598,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpjXyRskuqSsfsvP2Ufm\"}",
+    "context": {
+      "command": "اريد اعرف اي ملف يستخدم الواجهه التي تعرض هنا بالترمنال "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762345449385_5xflap6",
+    "timestamp": 1762345449385,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpjhFF8yQ1gmChMafb3X\"}",
+    "context": {
+      "command": "سارسل  لك ملفات  لتضعها بمكانها الصح "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762345500289_3wqnz11",
+    "timestamp": 1762345500289,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpjkzt3qAwpx2QCZ9Xme\"}",
+    "context": {
+      "command": "لحظه  اريد تغيير المشروع "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762345674440_hl381gv",
+    "timestamp": 1762345674440,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpjyqR9ah9peZ6G6VJCa\"}",
+    "context": {
+      "command": "/home/amir/Schreibtisch/مويد  ادخل هنا وضع بكل    مجلد مجلد يشرح عن اسم  الملف وما هي اعتقاداتك عن  الاسم  يعني لماذا انا كتبت الاسم بهل الشكل يعني تخمينك"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762345721769_71lnvwy",
+    "timestamp": 1762345721769,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpk3KpHBTVWTUKYx7AQx\"}",
+    "context": {
+      "command": "الان ضع بداخله ملفات نصيه باسم الملف "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762345781051_9oo2g52",
+    "timestamp": 1762345781051,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpk7hEzYcNLWbW6GTHqM\"}",
+    "context": {
+      "command": "الان اكتب بكل ملف   اللهم  صل  على محمد وال محمد"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762345880513_16gwcow",
+    "timestamp": 1762345880513,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpkF2UpjKkpqRGkp1Fj5\"}",
+    "context": {
+      "command": "من انت "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762346599602_cgwymgk",
+    "timestamp": 1762346599602,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpmA2u6zXjEeoZvWW67m\"}",
+    "context": {
+      "command": "ادخل للمشروع  هذا /home/amir/Dokumente/oqool-clean"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762346641435_yqm01ik",
+    "timestamp": 1762346641435,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpmD7kdkqDkwDuJXSxQY\"}",
+    "context": {
+      "command": "ما سبب هذه المشكله 🧠 oqool يعمل الآن..."
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762346704033_pg8w6ua",
+    "timestamp": 1762346704033,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpmHjLPuH7HeGPvp1fca\"}",
+    "context": {
+      "command": "نعم اعطيتك مشكله لماذا لم تنتبه "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762346738666_gevs9id",
+    "timestamp": 1762346738666,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpmLHSjxrJqeCFhefZHe\"}",
+    "context": {
+      "command": "المشروع الذي هو انت   يظهر هذه ا❌ خطأ: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpmHjLPuH7HeGPvp1fca\"}"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762346788902_y852kts",
+    "timestamp": 1762346788902,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpmPzGF1L3KfwSituk3q\"}",
+    "context": {
+      "command": "نعم  اعمل انت   ابحث عن الملفات "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762346855928_27pkhir",
+    "timestamp": 1762346855928,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpmUvq1XAGY2j9pgXCbb\"}",
+    "context": {
+      "command": "اين وجدتها "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762346934540_uxrmmgs",
+    "timestamp": 1762346934540,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpmaipcLb7bNuidPbrfg\"}",
+    "context": {
+      "command": "نعم  سوف  اضع لها  مصادقات  امنيه   لكن اذا موجوده  اذنمالذي ينقصنا هل هي لم تربط بالمشروع "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762346994969_wvorc7v",
+    "timestamp": 1762346994969,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpmfBHh272Pnq3tFsm3M\"}",
+    "context": {
+      "command": "اربط  المشروع بالمفاتيح"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762347086711_3x4n3eu",
+    "timestamp": 1762347086711,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpmmwWfE9hNPxSFhEqiN\"}",
+    "context": {
+      "command": "هل اكملت كل  شيء ام لا "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762347117502_ujzxigx",
+    "timestamp": 1762347117502,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpmpD84tEtPhJDD7af1A\"}",
+    "context": {
+      "command": "اكمل جميع الخطوات "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762347395625_e300fx4",
+    "timestamp": 1762347395625,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpnAiDqyvtjVPSYybSFX\"}",
+    "context": {
+      "command": "ساخرج من اك وارجع كي ارى التعديلات "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762347427778_ys4tjxp",
+    "timestamp": 1762347427778,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpnD5ZJ8veUU3SxD1yNX\"}",
+    "context": {
+      "command": "عدت اليك"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762348865999_hfdn29q",
+    "timestamp": 1762348865999,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpp36hTfdXKsVS5VAJ3Y\"}",
+    "context": {
+      "command": "ابحث عن هذه العباره 📚 تم تحميل بيانات التعلم"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762348930618_2lmmpbd",
+    "timestamp": 1762348930618,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpp7rzawkeCZ1pvYFC3M\"}",
+    "context": {
+      "command": "الملف: `packages/cli/src/learning-system.ts`"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762349262137_ns8a5cx",
+    "timestamp": 1762349262137,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUppYJMFUWCJrF8UYChZi\"}",
+    "context": {
+      "command": "من انت؟"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762349456462_xh6ej5q",
+    "timestamp": 1762349456462,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUppndBy6d9hUTEZ16n7T\"}",
+    "context": {
+      "command": "من انت "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762349479600_dnwn8oz",
+    "timestamp": 1762349479600,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpppL39Ma3na9X3A6CUB\"}",
+    "context": {
+      "command": "منانت "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762352273477_1cqm1x3",
+    "timestamp": 1762352273477,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUptNH81ntDbeRqMWFVTe\"}",
+    "context": {
+      "command": "من انت "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762352772546_subwy2q",
+    "timestamp": 1762352772546,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpu14qNSiK7zQwsVeDWC\"}",
+    "context": {
+      "command": "من انت "
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762354624135_lqvzxnq",
+    "timestamp": 1762354624135,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUpwMZ8WVKi5zxCQ29PnY\"}",
+    "context": {
+      "command": "# أوقف السيرفر ثم أعد تشغيله"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762362927705_vddqd9g",
+    "timestamp": 1762362927705,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUq7ueUXYvmo1AFUrZi4C\"}",
+    "context": {
+      "command": "oqool --version"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762368221772_bdg22uc",
+    "timestamp": 1762368221772,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUqEdv4GmRLpcmgcBnHGc\"}",
+    "context": {
+      "command": "lk hkj"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762368365742_ww7v65j",
+    "timestamp": 1762368365742,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUqEpUKWrbWFAdY345MMx\"}",
+    "context": {
+      "command": "lvpfh"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762368377771_rgee64w",
+    "timestamp": 1762368377771,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUqEqR4LkcBv83mmpsG8v\"}",
+    "context": {
+      "command": "مرحبا"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762368391808_txdnffq",
+    "timestamp": 1762368391808,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUqErT7eBdPr8YLmvJreC\"}",
+    "context": {
+      "command": "oqool ai \"اكتب دالة بسيطة\" --provider deepseek"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762368407774_5kgpf83",
+    "timestamp": 1762368407774,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUqEsdNKHVPpu6k6yvRdK\"}",
+    "context": {
+      "command": "# 4. جرّب مع Gemini (الأسرع والأرخص!)"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762368417168_7wmipj8",
+    "timestamp": 1762368417168,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUqEtKGR4mmEkF6z5Fwyj\"}",
+    "context": {
+      "command": "oqool providers"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762369062323_612tn30",
+    "timestamp": 1762369062323,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUqFht8QuMdo4F6Vqyn6R\"}",
+    "context": {
+      "command": "lk hkj"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762370075297_da041is",
+    "timestamp": 1762370075297,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUqGzYejEAaHGZCQo6qvw\"}",
+    "context": {
+      "command": "كلاود نايم"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762378834686_srv32fm",
+    "timestamp": 1762378834686,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUqU8EmwkM3a6GfH1zMXg\"}",
+    "context": {
+      "command": "من انت"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762378960922_c1tf7xq",
+    "timestamp": 1762378960922,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUqUHYUZiS3bXi9gWKm3N\"}",
+    "context": {
+      "command": "مرحبا"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762449769945_m4an8tq",
+    "timestamp": 1762449769945,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUs2H9DJvCbMSPEwyzd4Q\"}",
+    "context": {
+      "command": "بسم الله"
+    },
+    "successful": false,
+    "attemptCount": 0
+  },
+  {
+    "id": "err_1762449979171_46s04nt",
+    "timestamp": 1762449979171,
+    "error": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CUs2YaqbDXJGrmMPPB9VY\"}",
+    "context": {
+      "command": "/home/amir/Dokumente/الجديد/abdullah"
+    },
+    "successful": false,
+    "attemptCount": 0
+  }
+]
