@@ -1,11 +1,14 @@
 {
   "name": "@oqool/monorepo",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "description": "Oqool AI - Professional IDE with CLI and Shared Libraries",
   "author": "Oqool Team",
   "license": "MIT",
   "packageManager": "npm@10.2.4",
+  "bin": {
+    "oqool": "./oqool.mjs"
+  },
   "workspaces": [
     "packages/*"
   ],
