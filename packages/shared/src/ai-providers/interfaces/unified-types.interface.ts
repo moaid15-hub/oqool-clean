@@ -31,6 +31,12 @@ export interface UnifiedTool {
 export interface UnifiedResponse {
   content: string;
   toolCalls?: UnifiedToolCall[];
+  usage?: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+  };
+  error?: string;
   metadata: {
     provider: string;
     model: string;
@@ -38,6 +44,8 @@ export interface UnifiedResponse {
     tokens: number;
     duration: number;
     stopReason?: string;
+    cached?: boolean;
+    requestId?: string;
   };
 }
 

@@ -5,12 +5,13 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { Ollama } from 'ollama';
 
 // ═══════════════════════════════════════════════════════
 // 📋 Types - الأنواع الموحدة
 // ═══════════════════════════════════════════════════════
 
-export type AIProvider = 'claude' | 'openai' | 'deepseek' | 'gemini' | 'auto';
+export type AIProvider = 'claude' | 'openai' | 'deepseek' | 'gemini' | 'ollama' | 'auto';
 
 export interface Message {
   role: 'system' | 'user' | 'assistant';
@@ -54,12 +55,14 @@ class AIProviderAdapter {
   private openaiClient?: OpenAI;
   private deepseekClient?: OpenAI;
   private geminiClient?: GoogleGenerativeAI;
+  private ollamaClient?: Ollama;
 
   constructor(config: {
     claude?: string;
     openai?: string;
     deepseek?: string;
     gemini?: string;
+    ollama?: boolean;
   }) {
     if (config.claude) {
       this.claudeClient = new Anthropic({ apiKey: config.claude });
@@ -75,6 +78,9 @@ class AIProviderAdapter {
     }
     if (config.gemini) {
       this.geminiClient = new GoogleGenerativeAI(config.gemini);
+    }
+    if (config.ollama) {
+      this.ollamaClient = new Ollama({ host: 'http://localhost:11434' });
     }
   }
 
@@ -102,6 +108,10 @@ class AIProviderAdapter {
       case 'gemini':
         if (!this.geminiClient) throw new Error('Gemini not configured');
         return await this.sendToGemini(request);
+
+      case 'ollama':
+        if (!this.ollamaClient) throw new Error('Ollama not configured');
+        return await this.sendToOllama(request);
 
       default:
         throw new Error(`Unknown provider: ${provider}`);
@@ -344,6 +354,40 @@ class AIProviderAdapter {
       cost,
     };
   }
+
+  // ─────────────────────────────────────────────────────
+  // 🏠 Ollama Adapter (محلي ومجاني)
+  // ─────────────────────────────────────────────────────
+
+  private async sendToOllama(request: UnifiedRequest): Promise<UnifiedResponse> {
+    // استخراج system prompt
+    const systemMessage = request.messages.find((m) => m.role === 'system');
+    const userMessages = request.messages.filter((m) => m.role !== 'system');
+
+    // تجهيز الرسائل
+    const messages = userMessages.map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
+
+    // استدعاء Ollama
+    const response = await this.ollamaClient!.chat({
+      model: 'llama3.2', // النموذج الافتراضي
+      messages: systemMessage
+        ? [{ role: 'system', content: systemMessage.content }, ...messages]
+        : messages,
+      stream: false,
+    });
+
+    return {
+      text: response.message.content,
+      toolCalls: undefined, // Ollama tools تحتاج تكامل إضافي
+      needsToolResults: false,
+      provider: 'ollama',
+      model: 'llama3.2',
+      cost: 0, // مجاني!
+    };
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -359,6 +403,7 @@ export class UnifiedAIAdapterWithTools {
     openai?: string;
     deepseek?: string;
     gemini?: string;
+    ollama?: boolean;
     defaultProvider?: AIProvider;
   }) {
     this.adapter = new AIProviderAdapter(config);

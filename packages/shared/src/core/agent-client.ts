@@ -11,7 +11,7 @@ import { IntelligentPlanner } from './planner.js';
 import { LearningSystem } from './learning-system.js';
 import chalk from 'chalk';
 
-export type AIProviderName = 'claude' | 'gemini' | 'openai' | 'deepseek';
+export type AIProviderName = 'claude' | 'gemini' | 'openai' | 'deepseek' | 'ollama';
 
 export interface AgentConfig {
   apiKey?: string;
@@ -19,6 +19,7 @@ export interface AgentConfig {
   geminiKey?: string;
   openaiKey?: string;
   deepseekKey?: string;
+  useOllama?: boolean;
   provider?: AIProviderName;
   model?: string;
   maxIterations?: number;
@@ -56,6 +57,7 @@ export class AgentClient {
       gemini: config.geminiKey,
       openai: config.openaiKey,
       deepseek: config.deepseekKey,
+      ollama: config.useOllama || config.provider === 'ollama',
     });
 
     // تهيئة Context Manager

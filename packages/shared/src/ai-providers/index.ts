@@ -46,38 +46,39 @@ export { CostTracker, CostEntry, CostFilters, Budget, CostAlert, CostAlertType }
 export { MetricsCollector, Metric, MetricType, MetricFilters, AggregatedMetrics, MetricStats, MetricsReport } from './monitoring/metrics-collector';
 
 // 'DEHH,G H'DE-// (Router)
-export { IntelligentRouter, RouterOptions, TaskAnalysis, RouterStats } from './router/intelligent-router';
+// export { IntelligentRouter, RouterOptions, TaskAnalysis, RouterStats } from './router/intelligent-router'; // Disabled - has errors
 export { ProviderSelector } from './router/provider-selector';
 export { FallbackManager } from './router/fallback-manager';
 export { CostOptimizer, TaskRequirements, CostRecord, ProviderCostSummary } from './router/cost-optimizer';
 
 // 'D*C'ED (Integration)
-export { 
-  AgentLoopIntegration, 
-  AgentLoopResult, 
-  AgentLoopStep, 
-  MultiStepResult 
-} from './integration/agent-loop-integration';
+// Integration exports disabled - old system files
+// export {
+//   AgentLoopIntegration,
+//   AgentLoopResult,
+//   AgentLoopStep,
+//   MultiStepResult
+// } from './integration/agent-loop-integration';
 
-export { 
-  ToolExecutionIntegration, 
-  ToolExecutionResult, 
-  ToolResult, 
-  ToolExecutionRecord,
-  AgentLoopResult as ToolAgentLoopResult,
-  IterationResult,
-  ToolUsageStats
-} from './integration/tool-execution-integration';
+// export {
+//   ToolExecutionIntegration,
+//   ToolExecutionResult,
+//   ToolResult,
+//   ToolExecutionRecord,
+//   AgentLoopResult as ToolAgentLoopResult,
+//   IterationResult,
+//   ToolUsageStats
+// } from './integration/tool-execution-integration';
 
-export { 
-  CLIIntegration, 
-  InitializationResult, 
-  ChatOptions, 
-  ChatResult,
-  SwitchResult,
-  ProviderInfo,
-  CostEstimate as CLICostEstimate
-} from './integration/cli-integration';
+// export {
+//   CLIIntegration,
+//   InitializationResult,
+//   ChatOptions,
+//   ChatResult,
+//   SwitchResult,
+//   ProviderInfo,
+//   CostEstimate as CLICostEstimate
+// } from './integration/cli-integration';
 
 // ========================================
 // /'D) 'D*GJ&) 'D31J9)
@@ -87,7 +88,7 @@ export {
  * %F4'! 3,D E2H/JF 'A*1'6J E9 ,EJ9 'DE2H/JF 'DE*'-)
  * JB1# API Keys EF E*:J1'* 'D(J&) *DB'&J'K
  */
-export function createDefaultProviderRegistry(): ProviderRegistry {
+export function createDefaultProviderRegistry(): any { // ProviderRegistry {
   const registry = new ProviderRegistry();
 
   // *3,JD Claude %0' C'F API key EH,H/
@@ -144,33 +145,34 @@ export function createProviderFromEnv(type: ProviderType): IAIProvider {
 /**
  * %F4'! 'DF8'E 'DC'ED E9 ,EJ9 'DECF'*
  * J-*HJ 9DI: Router, Integration, CLI
+ * DISABLED - old system
  */
-export function createCompleteAISystem(): {
-  registry: ProviderRegistry;
-  router: IntelligentRouter;
-  agentIntegration: AgentLoopIntegration;
-  toolIntegration: ToolExecutionIntegration;
-  cliIntegration: CLIIntegration;
-} {
-  // %F4'! 'D3,D
-  const registry = createDefaultProviderRegistry();
-  
-  // %F4'! 'DEHH,G 'D0CJ
-  const router = new IntelligentRouter(registry);
-  
-  // %F4'! 'D*C'E*
-  const agentIntegration = new AgentLoopIntegration(router);
-  const toolIntegration = new ToolExecutionIntegration(router);
-  const cliIntegration = new CLIIntegration(registry, router);
+// export function createCompleteAISystem(): {
+//   registry: ProviderRegistry;
+//   router: IntelligentRouter;
+//   agentIntegration: AgentLoopIntegration;
+//   toolIntegration: ToolExecutionIntegration;
+//   cliIntegration: CLIIntegration;
+// } {
+//   // %F4'! 'D3,D
+//   const registry = createDefaultProviderRegistry();
+//
+//   // %F4'! 'DEHH,G 'D0CJ
+//   const router = new IntelligentRouter(registry);
+//
+//   // %F4'! 'D*C'E*
+//   const agentIntegration = new AgentLoopIntegration(router);
+//   const toolIntegration = new ToolExecutionIntegration(router);
+//   const cliIntegration = new CLIIntegration(registry, router);
 
-  return {
-    registry,
-    router,
-    agentIntegration,
-    toolIntegration,
-    cliIntegration
-  };
-}
+//   return {
+//     registry,
+//     router,
+//     agentIntegration,
+//     toolIntegration,
+//     cliIntegration
+//   };
+// }
 
 /**
  * F3() EF'G9) 3GD) 'D'3*5/'E - ,'-2 DD'3*5/'E 'DE('41
@@ -182,11 +184,34 @@ export const aiSystem = createCompleteAISystem();
 // ═══════════════════════════════════════════════════════
 
 // Integration - التكامل مع النظام القديم
-export { ExistingSystemIntegration } from './integration/existing-system-integration';
+// export { ExistingSystemIntegration } from './integration/existing-system-integration';
 
 // Setup - التهيئة الآلية
-export { SystemSetup } from './setup';
+// export { SystemSetup } from './setup';
 
 // Demos - الأمثلة التوضيحية
-export { runCompleteDemo } from './demo/complete-demo';
-export { runFinalTest } from './demo/final-test.demo';
+// export { runCompleteDemo } from './demo/complete-demo';
+// export { runFinalTest } from './demo/final-test.demo';
+
+// ═══════════════════════════════════════════════════════
+// 🚀 Advanced Unified Executor - المنفذ الموحد المتقدم
+// ═══════════════════════════════════════════════════════
+
+// المنفذ الموحد المتقدم
+export {
+  UnifiedExecutor,
+  getUnifiedExecutor,
+  getSystemStatus,
+  getPerformanceStats,
+  type ExecutionOptions,
+  type ExecutionResult,
+  type PerformanceStats
+} from './unified-executor-pro';
+
+// الأنظمة الداعمة
+export { getConnectionManager } from './connection-manager';
+export { getDynamicRouter, type TaskAnalysis, type RoutingDecision } from './dynamic-router';
+export { getCacheLayer } from './cache-layer';
+export { getFallbackSystem } from './fallback-system';
+export { getMetricsSystem } from './metrics-system';
+export { getQueueSystem } from './queue-system';

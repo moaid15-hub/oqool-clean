@@ -481,7 +481,8 @@ async function interactiveAgentMode(provider, workingDir) {
 
     const apiKey = apiKeys[provider] || apiKeys.claude;
 
-    if (!apiKey) {
+    // Ollama لا يحتاج API key
+    if (!apiKey && provider !== 'ollama') {
       ui.error(`المزود ${provider} غير متوفر. تحقق من ملف .env`);
       return;
     }
@@ -492,6 +493,7 @@ async function interactiveAgentMode(provider, workingDir) {
       geminiKey: process.env.GEMINI_API_KEY,
       openaiKey: process.env.OPENAI_API_KEY,
       deepseekKey: process.env.DEEPSEEK_API_KEY,
+      useOllama: provider === 'ollama',
       provider: provider,
       workingDirectory: workingDir,
       maxIterations: 25,
@@ -541,6 +543,136 @@ async function interactiveAgentMode(provider, workingDir) {
 }
 
 // ============================================
+// 🤖 Unified Agent Mode - النظام الموحد الكامل
+// ============================================
+async function unifiedAgentMode(prompt, options) {
+  displayBanner();
+
+  const provider = options.provider; // مو افتراضي - النظام يختار!
+  const workingDir = options.directory || process.cwd();
+
+  ui.printSection('💬 النظام الموحد المتقدم - Unified Agent Mode', { emoji: '🚀', level: 1 });
+  ui.printSection(`المشروع: ${workingDir}`, { emoji: '📂', level: 2 });
+  if (provider) {
+    ui.printSection(`المزود المحدد: ${provider}`, { emoji: '🔮', level: 2 });
+  } else {
+    ui.printSection(`الاختيار التلقائي: النظام سيختار أفضل AI لكل مهمة 🤖`, { emoji: '⚡', level: 2 });
+  }
+  ui.printSection(`المميزات: 7 Layers + Tools + 23 Agents + Dynamic Routing`, { emoji: '✨', level: 2 });
+  ui.newLine();
+
+  // إذا كان هناك prompt مباشر
+  if (prompt) {
+    try {
+      const { createUnifiedAgentExecutor } = await import('./packages/shared/dist/ai-providers/unified-agent-executor.js');
+
+      const executor = createUnifiedAgentExecutor({
+        enableAgentMode: true,
+        agentConfig: {
+          claudeKey: process.env.ANTHROPIC_API_KEY,
+          geminiKey: process.env.GEMINI_API_KEY,
+          openaiKey: process.env.OPENAI_API_KEY,
+          deepseekKey: process.env.DEEPSEEK_API_KEY,
+          provider: provider,
+          workingDirectory: workingDir,
+          maxIterations: 25,
+          enablePlanning: true,
+          enableContext: true,
+          enableLearning: true
+        }
+      });
+
+      ui.startSpinner('🤖 جاري التنفيذ مع النظام الموحد...');
+      const result = await executor.execute(prompt, { forceAgentMode: true });
+      ui.succeedSpinner('تم التنفيذ بنجاح!');
+
+      ui.newLine();
+      ui.printSection('النتيجة', { emoji: '📝', level: 2 });
+      console.log(result.response);
+
+      ui.newLine();
+      ui.printSummary('الإحصائيات', [
+        { label: 'المزود', value: result.provider, color: 'cyan', icon: '🤖' },
+        { label: 'المدة', value: `${result.duration}ms`, color: 'yellow', icon: '⏱️' },
+        { label: 'التكلفة', value: `$${result.cost.toFixed(6)}`, color: 'green', icon: '💰' }
+      ]);
+
+    } catch (error) {
+      ui.error(`خطأ: ${error.message}`);
+      console.error(error);
+    }
+    return;
+  }
+
+  // وضع تفاعلي
+  ui.info('اكتب طلبك واضغط Enter. اكتب "exit" للخروج.');
+  ui.newLine();
+
+  try {
+    const inquirer = (await import('inquirer')).default;
+    const { createUnifiedAgentExecutor } = await import('./packages/shared/dist/ai-providers/unified-agent-executor.js');
+
+    const executor = createUnifiedAgentExecutor({
+      enableAgentMode: true,
+      agentConfig: {
+        claudeKey: process.env.ANTHROPIC_API_KEY,
+        geminiKey: process.env.GEMINI_API_KEY,
+        openaiKey: process.env.OPENAI_API_KEY,
+        deepseekKey: process.env.DEEPSEEK_API_KEY,
+        provider: provider,
+        workingDirectory: workingDir,
+        maxIterations: 25,
+        enablePlanning: true,
+        enableContext: true,
+        enableLearning: true
+      }
+    });
+
+    // حلقة التفاعل
+    while (true) {
+      const { message } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'message',
+          message: '💬 أنت:',
+          prefix: ''
+        }
+      ]);
+
+      if (message.trim().toLowerCase() === 'exit' || message.trim() === 'خروج') {
+        ui.success('👋 مع السلامة!');
+        break;
+      }
+
+      if (!message.trim()) {
+        continue;
+      }
+
+      try {
+        ui.startSpinner('🤖 جاري التنفيذ...');
+        const result = await executor.execute(message, { forceAgentMode: true });
+        ui.succeedSpinner();
+
+        ui.newLine();
+        console.log(result.response);
+        ui.newLine();
+
+        ui.info(`📊 ${result.provider} • ${result.duration}ms • $${result.cost.toFixed(6)}`);
+        ui.newLine();
+
+      } catch (error) {
+        ui.failSpinner();
+        ui.error(`خطأ: ${error.message}`);
+      }
+    }
+
+  } catch (error) {
+    ui.error(`خطأ في الوضع التفاعلي: ${error.message}`);
+    console.error(error);
+  }
+}
+
+// ============================================
 // 🚀 برنامج Commander
 // ============================================
 
@@ -577,18 +709,130 @@ program
 program
   .command('agent [prompt]')
   .alias('g')
-  .description('🚀 Agent Mode - وضع العميل الذكي الكامل (يقرأ ويعدل الملفات)')
-  .option('-p, --provider <provider>', 'اختيار المزود (gemini, claude, openai, deepseek)', 'gemini')
+  .description('🚀 Agent Mode - نظام كامل (قراءة + كتابة + تنفيذ + Tools + Agent Loop)')
+  .option('-p, --provider <provider>', 'اختيار المزود (gemini, claude, openai, deepseek)', 'claude')
   .option('-d, --directory <path>', 'مجلد المشروع', process.cwd())
   .action(agentMode);
+
+program
+  .command('chat')
+  .alias('c')
+  .description('💬 وضع المحادثة التفاعلية الذكية (النظام الموحد المتقدم)')
+  .action(async () => {
+    const { getUnifiedExecutor } = await import('./packages/shared/dist/ai-providers/unified-executor-pro.js');
+    const readline = await import('readline');
+
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      prompt: '\n💬 أنت: '
+    });
+
+    const executor = getUnifiedExecutor();
+
+    console.log('\n╭────────────────────────────────────────────────╮');
+    console.log('│                                                │');
+    console.log('│   💬 Oqool Chat - محادثة تفاعلية ذكية         │');
+    console.log('│   🚀 النظام الموحد المتقدم                     │');
+    console.log('│                                                │');
+    console.log('╰────────────────────────────────────────────────╯\n');
+    console.log('📝 اكتب أي شيء وسيتم اختيار أفضل AI تلقائياً!');
+    console.log('⌨️  اكتب "exit" أو "خروج" للخروج\n');
+
+    rl.prompt();
+
+    rl.on('line', async (input) => {
+      const message = input.trim();
+
+      if (message === 'exit' || message === 'خروج' || message === 'quit') {
+        console.log('\n👋 مع السلامة!\n');
+        rl.close();
+        process.exit(0);
+      }
+
+      if (!message) {
+        rl.prompt();
+        return;
+      }
+
+      try {
+        console.log('\n🤖 جاري التفكير...\n');
+
+        const result = await executor.execute(message, {
+          priority: 'balanced',
+          maxTokens: 2000
+        });
+
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🤖 الرد:\n');
+        console.log(result.response || 'لا يوجد رد');
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log(`📊 ${result.provider} • ${result.duration}ms • $${result.cost.toFixed(6)}`);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      } catch (error) {
+        console.error('\n❌ خطأ:', error.message);
+      }
+
+      rl.prompt();
+    });
+
+    rl.on('close', () => {
+      console.log('\n👋 تم إغلاق البرنامج\n');
+      process.exit(0);
+    });
+  });
 
 // ============================================
 // 🎯 تشغيل البرنامج
 // ============================================
 
-program.parse(process.argv);
-
-// إذا لم يتم تمرير أي أمر، اعرض المساعدة
+// إذا لم يتم تمرير أي أمر، اعرض قائمة اختيار المزود
 if (!process.argv.slice(2).length) {
-  program.outputHelp();
+  (async () => {
+    const inquirer = (await import('inquirer')).default;
+
+    displayBanner();
+
+    ui.printSection('🚀 مرحباً بك في Oqool', { emoji: '🧠', level: 1 });
+    ui.newLine();
+
+    const { providerChoice } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'providerChoice',
+        message: '🤖 اختر المزود:',
+        choices: [
+          {
+            name: '⚡ اختيار ذكي تلقائي (يختار الأفضل حسب التكلفة والسرعة)',
+            value: 'auto'
+          },
+          { name: '🔮 Claude - الأقوى (للمهام المعقدة)', value: 'claude' },
+          { name: '💎 Gemini - سريع ورخيص (مثالي للمهام البسيطة)', value: 'gemini' },
+          { name: '🤖 OpenAI - متوازن (جودة + سرعة)', value: 'openai' },
+          { name: '⚡ DeepSeek - الأرخص (ممتاز للبرمجة)', value: 'deepseek' },
+          { name: '🏠 Ollama - محلي ومجاني 100% (يعمل على جهازك)', value: 'ollama' }
+        ],
+        default: 'auto'
+      }
+    ]);
+
+    ui.newLine();
+
+    if (providerChoice === 'auto') {
+      ui.success('✨ تم تفعيل الاختيار الذكي التلقائي');
+      ui.info('💡 سيتم اختيار أفضل مزود حسب كل مهمة تلقائياً');
+      ui.newLine();
+
+      // اختيار تلقائي: gemini (أرخص وأسرع للبداية)
+      agentMode(null, { provider: 'gemini', directory: process.cwd() });
+    } else {
+      ui.success(`✨ تم اختيار: ${providerChoice}`);
+      ui.newLine();
+
+      agentMode(null, { provider: providerChoice, directory: process.cwd() });
+    }
+  })();
+} else {
+  program.parse(process.argv);
 }

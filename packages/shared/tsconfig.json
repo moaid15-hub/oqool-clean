@@ -29,7 +29,9 @@
     "src/core/cli-agent.ts",
     "src/core/cli.ts",
     "src/core/god-mode.ts",
-    "src/ai-providers/**",
-    "src/agents/**"
+    "src/agents/**",
+    "src/ai-providers/router/intelligent-router.ts",
+    "src/ai-providers/integration/**",
+    "src/ai-providers/adapters/**"
   ]
 }

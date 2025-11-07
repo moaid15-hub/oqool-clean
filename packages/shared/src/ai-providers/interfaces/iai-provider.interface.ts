@@ -8,6 +8,11 @@ export interface UnifiedRequest {
   messages: UnifiedMessage[];
   tools?: UnifiedTool[];
   options?: RequestOptions;
+  maxTokens?: number;
+  stream?: boolean;
+  model?: string;
+  temperature?: number;
+  systemPrompt?: string;
 }
 
 export interface RequestOptions {
@@ -34,6 +39,7 @@ export interface RoutingDecision {
   reason: string;
   confidence: number;
   alternativeProviders: string[];
+  metadata?: Record<string, any>;
 }
 
 export interface IAIProvider {
