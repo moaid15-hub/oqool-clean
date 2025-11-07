@@ -136,7 +136,7 @@ class AIProviderAdapter {
 
     // 4. إرسال الطلب
     const response = await this.claudeClient!.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-5-haiku-20241022',
       max_tokens: request.maxTokens || 4096,
       temperature: request.temperature || 0.7,
       system: systemMessage?.content,

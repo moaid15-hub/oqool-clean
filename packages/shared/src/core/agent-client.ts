@@ -1,40 +1,45 @@
 // agent-client.ts
 // ============================================
-// 🤖 Agent Loop - المحرك الحقيقي
+// 🤖 Agent Loop - المحرك الحقيقي (مع دعم جميع المزودين)
 // ============================================
 
-import Anthropic from '@anthropic-ai/sdk';
+import { UnifiedAIAdapterWithTools } from '../ai-gateway/unified-ai-adapter.js';
+import type { AIProvider } from '../ai-gateway/unified-ai-adapter.js';
 import { TOOL_DEFINITIONS, executeTool } from './tools.js';
 import { ContextManager } from './context-manager.js';
 import { IntelligentPlanner } from './planner.js';
 import { LearningSystem } from './learning-system.js';
 import chalk from 'chalk';
 
-export type AIProviderName = 'anthropic' | 'gemini' | 'openai' | 'deepseek';
+export type AIProviderName = 'claude' | 'gemini' | 'openai' | 'deepseek';
 
 export interface AgentConfig {
-  apiKey: string;
-  provider?: AIProviderName; // AI Provider name
+  apiKey?: string;
+  claudeKey?: string;
+  geminiKey?: string;
+  openaiKey?: string;
+  deepseekKey?: string;
+  provider?: AIProviderName;
   model?: string;
   maxIterations?: number;
   workingDirectory?: string;
-  enablePlanning?: boolean; // تفعيل التخطيط الذكي
-  enableContext?: boolean; // تفعيل Context Management
-  enableLearning?: boolean; // تفعيل التعلم من الأخطاء
+  enablePlanning?: boolean;
+  enableContext?: boolean;
+  enableLearning?: boolean;
 }
 
 export class AgentClient {
-  private client: Anthropic;
+  private aiAdapter: UnifiedAIAdapterWithTools;
   private config: AgentConfig;
   private conversationHistory: Array<any> = [];
   private contextManager?: ContextManager;
   private planner?: IntelligentPlanner;
   private learningSystem?: LearningSystem;
+  private currentProvider: AIProviderName;
 
   constructor(config: AgentConfig) {
     this.config = {
-      provider: 'anthropic', // Default provider
-      model: 'claude-3-5-haiku-20241022',
+      provider: 'claude',
       maxIterations: 25,
       workingDirectory: process.cwd(),
       enablePlanning: true,
@@ -43,11 +48,14 @@ export class AgentClient {
       ...config,
     };
 
-    // إنشاء client حسب Provider
-    // حالياً نستخدم Anthropic SDK حتى مع Gemini
-    // لأن Anthropic SDK يدعم Gemini أيضاً عبر Vertex AI
-    this.client = new Anthropic({
-      apiKey: this.config.apiKey,
+    this.currentProvider = this.config.provider!;
+
+    // إنشاء UnifiedAIAdapter مع جميع المفاتيح
+    this.aiAdapter = new UnifiedAIAdapterWithTools({
+      claude: config.claudeKey || config.apiKey,
+      gemini: config.geminiKey,
+      openai: config.openaiKey,
+      deepseek: config.deepseekKey,
     });
 
     // تهيئة Context Manager
@@ -57,16 +65,15 @@ export class AgentClient {
 
     // تهيئة Planner
     if (this.config.enablePlanning) {
-      this.planner = new IntelligentPlanner(this.config.apiKey);
+      const plannerKey = config.claudeKey || config.apiKey || '';
+      this.planner = new IntelligentPlanner(plannerKey);
     }
 
     // تهيئة Learning System
     if (this.config.enableLearning) {
-      this.learningSystem = new LearningSystem(this.config.workingDirectory!, this.config.apiKey);
-      // تحميل البيانات المحفوظة
-      this.learningSystem.load().catch(() => {
-        // تجاهل الأخطاء في التحميل
-      });
+      const learningKey = config.claudeKey || config.apiKey || '';
+      this.learningSystem = new LearningSystem(this.config.workingDirectory!, learningKey);
+      this.learningSystem.load().catch(() => {});
     }
   }
 
@@ -108,22 +115,51 @@ export class AgentClient {
       console.log(chalk.blue(`\n[Iteration ${iteration}]`));
 
       try {
-        // استدعاء Claude API
-        const response = await this.client.messages.create({
-          model: this.config.model!,
-          max_tokens: 4096,
-          system: this.getSystemPrompt(projectContext),
-          messages: this.conversationHistory,
-          tools: TOOL_DEFINITIONS as any,
-        });
+        // استدعاء AI عبر UnifiedAdapter مع Tools
+        const tools = TOOL_DEFINITIONS.map(tool => ({
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.input_schema.properties
+        }));
 
-        // معالجة الرد
-        const result = await this.processResponse(response);
+        const response = await this.aiAdapter.executeWithTools(
+          this.conversationHistory,
+          tools,
+          async (toolName: string, args: any) => {
+            console.log(chalk.yellow(`\n🔧 استخدام أداة: ${toolName}`));
+            console.log(chalk.gray(JSON.stringify(args, null, 2)));
 
-        if (result.done) {
-          finalResponse = result.text;
+            const result = await executeTool(toolName, args);
+
+            try {
+              const parsed = JSON.parse(result);
+              if (parsed.success) {
+                console.log(chalk.green('✓ نجحت'));
+              } else {
+                console.log(chalk.red(`✗ فشلت: ${parsed.error}`));
+              }
+            } catch (e) {
+              console.log(chalk.gray('نتيجة: ' + result.slice(0, 100)));
+            }
+
+            return result;
+          },
+          10,
+          this.currentProvider as AIProvider
+        );
+
+        // النتيجة النهائية
+        if (response.text && response.text.trim()) {
+          finalResponse = response.text;
           break;
         }
+
+        // إذا لم تكن هناك نتيجة، نستمر
+        if (response.iterations >= 10) {
+          finalResponse = 'تم الوصول للحد الأقصى من التكرارات';
+          break;
+        }
+
       } catch (error: any) {
         console.error(chalk.red(`\n❌ خطأ: ${error.message}`));
 
@@ -133,17 +169,12 @@ export class AgentClient {
             command: userMessage,
           });
 
-          // محاولة إيجاد حل من التعلم السابق
           const solution = await this.learningSystem.findSolution(error.message);
 
           if (solution) {
             console.log(chalk.green('💡 وجدت حل من الخبرة السابقة!'));
             console.log(chalk.gray(solution));
-
-            // تسجيل نجاح الحل
             await this.learningSystem.recordSuccess(errorId, solution);
-
-            // المحاولة مرة أخرى
             continue;
           }
         }
@@ -261,81 +292,6 @@ export class AgentClient {
     return prompt;
   }
 
-  // ============================================
-  // ⚙️ معالجة رد Claude
-  // ============================================
-  private async processResponse(response: any): Promise<{
-    done: boolean;
-    text: string;
-  }> {
-    // إضافة رد Assistant للتاريخ
-    this.conversationHistory.push({
-      role: 'assistant',
-      content: response.content,
-    });
-
-    // التحقق من stop_reason
-    if (response.stop_reason === 'end_turn') {
-      // انتهى Agent - استخراج النص
-      const textBlocks = response.content.filter((block: any) => block.type === 'text');
-
-      const finalText = textBlocks.map((block: any) => block.text).join('\n');
-
-      return {
-        done: true,
-        text: finalText,
-      };
-    }
-
-    // استخراج tool uses
-    const toolUses = response.content.filter((block: any) => block.type === 'tool_use');
-
-    if (toolUses.length === 0) {
-      return {
-        done: true,
-        text: 'انتهى العمل بدون استخدام أدوات',
-      };
-    }
-
-    // تنفيذ الأدوات
-    const toolResults = await Promise.all(
-      toolUses.map(async (toolUse: any) => {
-        console.log(chalk.yellow(`\n🔧 استخدام أداة: ${toolUse.name}`));
-        console.log(chalk.gray(JSON.stringify(toolUse.input, null, 2)));
-
-        const result = await executeTool(toolUse.name, toolUse.input);
-
-        // عرض نتيجة مختصرة
-        try {
-          const parsed = JSON.parse(result);
-          if (parsed.success) {
-            console.log(chalk.green('✓ نجحت'));
-          } else {
-            console.log(chalk.red(`✗ فشلت: ${parsed.error}`));
-          }
-        } catch (e) {
-          console.log(chalk.gray('نتيجة: ' + result.slice(0, 100)));
-        }
-
-        return {
-          type: 'tool_result',
-          tool_use_id: toolUse.id,
-          content: result,
-        };
-      })
-    );
-
-    // إضافة نتائج الأدوات للتاريخ
-    this.conversationHistory.push({
-      role: 'user',
-      content: toolResults,
-    });
-
-    return {
-      done: false,
-      text: '',
-    };
-  }
 
   // ============================================
   // 💬 وضع المحادثة التفاعلية
@@ -349,11 +305,10 @@ export class AgentClient {
   // ============================================
   async verifyApiKey(): Promise<boolean> {
     try {
-      await this.client.messages.create({
-        model: this.config.model!,
-        max_tokens: 1,
-        messages: [{ role: 'user', content: 'test' }],
-      });
+      await this.aiAdapter.chat(
+        [{ role: 'user', content: 'test' }],
+        this.currentProvider as AIProvider
+      );
       return true;
     } catch (error) {
       return false;

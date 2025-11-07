@@ -375,7 +375,7 @@ async function chatWithAI(prompt, options) {
 async function agentMode(prompt, options) {
   displayBanner();
 
-  const provider = options.provider || process.env.DEFAULT_AI_PROVIDER || 'claude';
+  const provider = options.provider || process.env.DEFAULT_AI_PROVIDER || 'gemini';
   const workingDir = options.directory || process.cwd();
 
   // إذا لم يكن هناك prompt - وضع تفاعلي
@@ -414,10 +414,13 @@ async function agentMode(prompt, options) {
     ui.succeedSpinner('تم تحليل المشروع');
     ui.newLine();
 
-    // إنشاء Agent
+    // إنشاء Agent مع جميع المفاتيح
     const agent = createAgentClient({
-      apiKey,
-      provider: provider === 'gemini' ? 'anthropic' : provider, // مؤقت - نستخدم claude للكل
+      claudeKey: process.env.ANTHROPIC_API_KEY,
+      geminiKey: process.env.GEMINI_API_KEY,
+      openaiKey: process.env.OPENAI_API_KEY,
+      deepseekKey: process.env.DEEPSEEK_API_KEY,
+      provider: provider,
       workingDirectory: workingDir,
       maxIterations: 25,
       enablePlanning: true,
@@ -483,10 +486,13 @@ async function interactiveAgentMode(provider, workingDir) {
       return;
     }
 
-    // إنشاء Agent
+    // إنشاء Agent مع جميع المفاتيح
     const agent = createAgentClient({
-      apiKey,
-      provider: 'anthropic',
+      claudeKey: process.env.ANTHROPIC_API_KEY,
+      geminiKey: process.env.GEMINI_API_KEY,
+      openaiKey: process.env.OPENAI_API_KEY,
+      deepseekKey: process.env.DEEPSEEK_API_KEY,
+      provider: provider,
       workingDirectory: workingDir,
       maxIterations: 25,
       enablePlanning: true,
@@ -572,7 +578,7 @@ program
   .command('agent [prompt]')
   .alias('g')
   .description('🚀 Agent Mode - وضع العميل الذكي الكامل (يقرأ ويعدل الملفات)')
-  .option('-p, --provider <provider>', 'اختيار المزود (gemini, claude, openai, deepseek)', 'claude')
+  .option('-p, --provider <provider>', 'اختيار المزود (gemini, claude, openai, deepseek)', 'gemini')
   .option('-d, --directory <path>', 'مجلد المشروع', process.cwd())
   .action(agentMode);
 
