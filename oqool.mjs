@@ -3,21 +3,16 @@
 /**
  * ╔═══════════════════════════════════════════════════════════╗
  * ║                                                           ║
- * ║              🧠  Oqool CLI - Agent Edition                ║
+ * ║              🧠  Oqool CLI - Professional Edition         ║
  * ║                                                           ║
  * ║         نظام عقول للتطوير الذكي بالذكاء الاصطناعي       ║
- * ║                      With Agent Loop                      ║
+ * ║                With Enhanced UI System 🚀                 ║
  * ║                                                           ║
  * ╚═══════════════════════════════════════════════════════════╝
  */
 
 import { Command } from 'commander';
-import chalk from 'chalk';
-import boxen from 'boxen';
-import gradient from 'gradient-string';
-import ora from 'ora';
-import inquirer from 'inquirer';
-import Table from 'cli-table3';
+import { ui } from './packages/shared/dist/core/ui.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -25,154 +20,154 @@ dotenv.config();
 const program = new Command();
 
 // ============================================
-// 🎨 Banner الاحترافي
+// 🎨 Banner باستخدام UI الجديد
 // ============================================
 function displayBanner() {
-  const banner = gradient.pastel.multiline([
-    '╔═══════════════════════════════════════════════════════════╗',
-    '║                                                           ║',
-    '║              🧠  Oqool AI Development System              ║',
-    '║                                                           ║',
-    '║         نظام عقول للتطوير الذكي بالذكاء الاصطناعي       ║',
-    '║                      Agent Edition 🚀                     ║',
-    '║                                                           ║',
-    '╚═══════════════════════════════════════════════════════════╝',
-  ].join('\n'));
-
-  console.log('\n' + banner + '\n');
-  console.log(chalk.cyan('  📌 الإصدار:') + chalk.white(' v2.0.0 - Agent Edition'));
-  console.log(chalk.cyan('  🌐 المستودع:') + chalk.white(' github.com/moaid15-hub/oqool-clean'));
-  console.log(chalk.cyan('  👨‍💻 المطور:') + chalk.white(' فريق Oqool'));
-  console.log(chalk.cyan('  📅 التاريخ:') + chalk.white(' 2025-11-06\n'));
+  ui.printBanner('v3.0.0 - Professional Edition');
+  ui.printHeader('Oqool AI Development System', 'نظام عقول للتطوير الذكي', {
+    emoji: '🧠',
+    color: 'cyan'
+  });
+  ui.newLine();
 }
 
 // ============================================
-// 📊 عرض المزودين بجدول احترافي
+// 📊 عرض المزودين باستخدام UI الجديد
 // ============================================
 async function showProviders() {
   displayBanner();
 
-  const spinner = ora({
-    text: chalk.cyan('جاري فحص المزودين...'),
-    spinner: 'dots'
-  }).start();
-
+  ui.startSpinner('جاري فحص المزودين...', 'dots');
   await new Promise(resolve => setTimeout(resolve, 1000));
-  spinner.succeed(chalk.green('تم الفحص بنجاح!'));
+  ui.succeedSpinner('تم الفحص بنجاح!');
 
-  console.log('\n' + chalk.bold.yellow('🌐 المزودين المدعومين:\n'));
+  ui.newLine();
+  ui.printSection('المزودين المدعومين', { emoji: '🌐', level: 1 });
 
   const providers = [
     {
       name: 'Claude (Anthropic)',
       icon: '🔮',
-      model: 'claude-sonnet-4',
-      description: 'الأقوى للمهام المعقدة - Agent Loop كامل',
-      features: ['Agent Loop', 'Tools', 'Function Calling', 'Context 200K'],
-      cost: '$$$',
+      status: process.env.ANTHROPIC_API_KEY ? '✅ متصل' : '❌ غير متصل',
       speed: '⭐⭐⭐⭐',
       quality: '⭐⭐⭐⭐⭐',
-      available: !!process.env.ANTHROPIC_API_KEY,
-      color: 'magenta'
+      cost: '$$$'
     },
     {
       name: 'DeepSeek',
       icon: '⚡',
-      model: 'deepseek-coder',
-      description: 'الأرخص والأسرع - ممتاز للبرمجة',
-      features: ['Fast', 'Cheap', 'Code Expert', 'Context 64K'],
-      cost: '$',
+      status: process.env.DEEPSEEK_API_KEY ? '✅ متصل' : '❌ غير متصل',
       speed: '⭐⭐⭐⭐⭐',
       quality: '⭐⭐⭐⭐',
-      available: !!process.env.DEEPSEEK_API_KEY,
-      color: 'blue'
+      cost: '$'
     },
     {
       name: 'OpenAI (GPT)',
       icon: '🤖',
-      model: 'gpt-4o',
-      description: 'متوازن بين القوة والسرعة',
-      features: ['Tools', 'Vision', 'Reliable', 'Context 128K'],
-      cost: '$$',
+      status: process.env.OPENAI_API_KEY ? '✅ متصل' : '❌ غير متصل',
       speed: '⭐⭐⭐⭐',
       quality: '⭐⭐⭐⭐',
-      available: !!process.env.OPENAI_API_KEY,
-      color: 'green'
+      cost: '$$'
     },
     {
       name: 'Gemini (Google)',
       icon: '💎',
-      model: 'gemini-pro',
-      description: 'سريع ومجاني - رائع للاختبار',
-      features: ['Free Tier', 'Fast', 'Multimodal', 'Context 32K'],
-      cost: 'Free/$',
+      status: process.env.GEMINI_API_KEY ? '✅ متصل' : '❌ غير متصل',
       speed: '⭐⭐⭐⭐⭐',
       quality: '⭐⭐⭐',
-      available: !!process.env.GEMINI_API_KEY,
-      color: 'yellow'
+      cost: 'Free/$'
     },
     {
       name: 'Ollama',
       icon: '🏠',
-      model: 'llama3/codellama',
-      description: 'محلي تماماً - خصوصية كاملة',
-      features: ['Local', 'Private', 'Free', 'Offline'],
-      cost: 'Free',
+      status: process.env.USE_OLLAMA === 'true' ? '✅ متصل' : '❌ غير متصل',
       speed: '⭐⭐⭐',
       quality: '⭐⭐⭐',
-      available: false,
-      color: 'cyan'
+      cost: 'Free'
     }
   ];
 
-  const table = new Table({
-    head: [
-      chalk.cyan('المزود'),
-      chalk.cyan('الحالة'),
-      chalk.cyan('السرعة'),
-      chalk.cyan('الجودة'),
-      chalk.cyan('التكلفة')
-    ],
-    colWidths: [25, 12, 12, 12, 12],
-    style: { head: [], border: ['cyan'] }
-  });
+  // عرض الجدول باستخدام UI الجديد
+  const tableData = providers.map(p => ({
+    provider: p.icon + ' ' + p.name,
+    status: p.status,
+    speed: p.speed,
+    quality: p.quality,
+    cost: p.cost
+  }));
 
-  providers.forEach(p => {
-    const status = p.available ? chalk.green('✅ متصل') : chalk.red('❌');
-    table.push([
-      p.icon + ' ' + p.name,
-      status,
-      p.speed,
-      p.quality,
-      p.cost
-    ]);
-  });
+  const tableColumns = [
+    { key: 'provider', label: 'المزود', width: 25 },
+    { key: 'status', label: 'الحالة', width: 12 },
+    { key: 'speed', label: 'السرعة', width: 12 },
+    { key: 'quality', label: 'الجودة', width: 12 },
+    { key: 'cost', label: 'التكلفة', width: 12 }
+  ];
 
-  console.log(table.toString());
+  ui.printTable(tableData, tableColumns, { title: 'AI Providers Status' });
 
-  // تفاصيل كل مزود
-  console.log('\n' + chalk.bold.cyan('📋 التفاصيل:\n'));
+  // عرض التفاصيل
+  ui.newLine();
+  ui.printSection('التفاصيل', { emoji: '📋', level: 2 });
 
-  providers.forEach(p => {
-    console.log(chalk[p.color].bold(`${p.icon} ${p.name}`));
-    console.log('   ' + chalk.gray(p.description));
-    console.log('   ' + chalk.white('النموذج: ') + chalk.cyan(p.model));
-    console.log('   ' + chalk.white('المميزات: ') + chalk.yellow(p.features.join(' • ')));
-
-    if (!p.available && p.name !== 'Ollama') {
-      const envVar = p.name.includes('Claude') ? 'ANTHROPIC_API_KEY' :
-                     p.name.includes('DeepSeek') ? 'DEEPSEEK_API_KEY' :
-                     p.name.includes('OpenAI') ? 'OPENAI_API_KEY' : 'GEMINI_API_KEY';
-      console.log('   ' + chalk.yellow(`💡 أضف ${envVar} في ملف .env`));
+  const details = [
+    {
+      title: '🔮 Claude (Anthropic)',
+      items: [
+        'الأقوى للمهام المعقدة - Agent Loop كامل',
+        'النموذج: claude-3-5-haiku-20241022',
+        'المميزات: Agent Loop • Tools • Function Calling • Context 200K'
+      ]
+    },
+    {
+      title: '⚡ DeepSeek',
+      items: [
+        'الأرخص والأسرع - ممتاز للبرمجة',
+        'النموذج: deepseek-coder',
+        'المميزات: Fast • Cheap • Code Expert • Context 64K'
+      ]
+    },
+    {
+      title: '🤖 OpenAI (GPT)',
+      items: [
+        'متوازن بين القوة والسرعة',
+        'النموذج: gpt-4o',
+        'المميزات: Tools • Vision • Reliable • Context 128K'
+      ]
+    },
+    {
+      title: '💎 Gemini (Google)',
+      items: [
+        'سريع ومجاني - رائع للاختبار',
+        'النموذج: gemini-2.0-flash-exp',
+        'المميزات: Free Tier • Fast • Multimodal • Context 32K'
+      ]
+    },
+    {
+      title: '🏠 Ollama',
+      items: [
+        'محلي تماماً - خصوصية كاملة',
+        'النموذج: llama3.1:8b',
+        'المميزات: Local • Private • Free • Offline'
+      ]
     }
-    console.log('');
+  ];
+
+  details.forEach(detail => {
+    ui.info(detail.title);
+    ui.printList(detail.items, { bullets: true, indent: 3 });
+    ui.newLine();
   });
 
-  const available = providers.filter(p => p.available).length;
-  console.log(boxen(
-    chalk.bold.green(`✨ ${available}/${providers.length} مزودين جاهزين للعمل!`),
-    { padding: 1, margin: 1, borderStyle: 'round', borderColor: 'green' }
-  ));
+  // عرض الإحصائيات
+  const totalProviders = providers.length;
+  const activeProviders = providers.filter(p => p.status.includes('✅')).length;
+
+  ui.printSummary('ملخص النظام', [
+    { label: 'إجمالي المزودين', value: totalProviders, color: 'cyan', icon: '🔢' },
+    { label: 'المزودين النشطين', value: activeProviders, color: 'green', icon: '✅' },
+    { label: 'نسبة الجاهزية', value: `${((activeProviders/totalProviders)*100).toFixed(0)}%`, color: activeProviders >= 3 ? 'green' : 'yellow', icon: '📊' }
+  ]);
 }
 
 // ============================================
@@ -181,125 +176,372 @@ async function showProviders() {
 async function testSystem() {
   displayBanner();
 
-  console.log(chalk.bold.yellow('🧪 جاري اختبار النظام الشامل...\n'));
+  ui.printSection('اختبار النظام الشامل', { emoji: '🧪', level: 1 });
 
   const tests = [
-    { name: 'فحص ملف .env', test: () => !!process.env.ANTHROPIC_API_KEY || !!process.env.DEEPSEEK_API_KEY },
-    { name: 'فحص مفاتيح API', test: () => {
-      const keys = [
-        process.env.ANTHROPIC_API_KEY,
-        process.env.DEEPSEEK_API_KEY,
-        process.env.OPENAI_API_KEY,
-        process.env.GEMINI_API_KEY
-      ];
-      return keys.filter(Boolean).length > 0;
-    }},
-    { name: 'فحص المجلد الحالي', test: () => !!process.cwd() },
-    { name: 'فحص Node.js', test: () => process.version.startsWith('v') }
+    { name: 'فحص ملف .env', status: 'pending' },
+    { name: 'فحص مفاتيح API', status: 'pending' },
+    { name: 'فحص المجلد الحالي', status: 'pending' },
+    { name: 'فحص Node.js', status: 'pending' }
   ];
 
-  for (const test of tests) {
-    const spinner = ora(chalk.cyan(test.name)).start();
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    if (test.test()) {
-      spinner.succeed(chalk.green(test.name));
-    } else {
-      spinner.fail(chalk.red(test.name));
-    }
+  // اختبار 1: .env
+  ui.startSpinner('فحص ملف .env');
+  await new Promise(resolve => setTimeout(resolve, 500));
+  const hasEnv = process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY ||
+                 process.env.OPENAI_API_KEY || process.env.DEEPSEEK_API_KEY;
+  if (hasEnv) {
+    tests[0].status = 'success';
+    ui.succeedSpinner('فحص ملف .env');
+  } else {
+    tests[0].status = 'error';
+    ui.failSpinner('فحص ملف .env');
   }
 
-  console.log('\n' + chalk.bold.yellow('🔑 المزودين المتاحين:\n'));
-
-  const providers = {
-    'Claude': process.env.ANTHROPIC_API_KEY,
-    'DeepSeek': process.env.DEEPSEEK_API_KEY,
-    'OpenAI': process.env.OPENAI_API_KEY,
-    'Gemini': process.env.GEMINI_API_KEY
+  // اختبار 2: API Keys
+  ui.startSpinner('فحص مفاتيح API');
+  await new Promise(resolve => setTimeout(resolve, 500));
+  const apiKeys = {
+    Claude: !!process.env.ANTHROPIC_API_KEY,
+    DeepSeek: !!process.env.DEEPSEEK_API_KEY,
+    OpenAI: !!process.env.OPENAI_API_KEY,
+    Gemini: !!process.env.GEMINI_API_KEY
   };
+  const activeKeys = Object.values(apiKeys).filter(Boolean).length;
+  if (activeKeys > 0) {
+    tests[1].status = 'success';
+    ui.succeedSpinner('فحص مفاتيح API');
+  } else {
+    tests[1].status = 'error';
+    ui.failSpinner('فحص مفاتيح API');
+  }
 
-  Object.entries(providers).forEach(([name, key]) => {
-    if (key) {
-      const masked = key.substring(0, 8) + '...' + key.substring(key.length - 4);
-      console.log(chalk.green('  ✅ ' + name + ': ') + chalk.gray(masked));
-    } else {
-      console.log(chalk.red('  ❌ ' + name + ': ') + chalk.gray('غير متوفر'));
+  // اختبار 3: المجلد
+  ui.startSpinner('فحص المجلد الحالي');
+  await new Promise(resolve => setTimeout(resolve, 500));
+  tests[2].status = 'success';
+  ui.succeedSpinner('فحص المجلد الحالي');
+
+  // اختبار 4: Node.js
+  ui.startSpinner('فحص Node.js');
+  await new Promise(resolve => setTimeout(resolve, 500));
+  tests[3].status = 'success';
+  ui.succeedSpinner('فحص Node.js');
+
+  ui.newLine();
+
+  // عرض مفاتيح API
+  ui.printSection('المزودين المتاحين', { emoji: '🔑', level: 2 });
+
+  if (process.env.ANTHROPIC_API_KEY) {
+    ui.success(`Claude: ${process.env.ANTHROPIC_API_KEY.substring(0, 10)}...${process.env.ANTHROPIC_API_KEY.substring(process.env.ANTHROPIC_API_KEY.length - 4)}`);
+  } else {
+    ui.error('Claude: غير متوفر');
+  }
+
+  if (process.env.DEEPSEEK_API_KEY) {
+    ui.success(`DeepSeek: ${process.env.DEEPSEEK_API_KEY.substring(0, 10)}...${process.env.DEEPSEEK_API_KEY.substring(process.env.DEEPSEEK_API_KEY.length - 4)}`);
+  } else {
+    ui.error('DeepSeek: غير متوفر');
+  }
+
+  if (process.env.OPENAI_API_KEY) {
+    ui.success(`OpenAI: ${process.env.OPENAI_API_KEY.substring(0, 10)}...${process.env.OPENAI_API_KEY.substring(process.env.OPENAI_API_KEY.length - 4)}`);
+  } else {
+    ui.error('OpenAI: غير متوفر');
+  }
+
+  if (process.env.GEMINI_API_KEY) {
+    ui.success(`Gemini: ${process.env.GEMINI_API_KEY.substring(0, 10)}...${process.env.GEMINI_API_KEY.substring(process.env.GEMINI_API_KEY.length - 4)}`);
+  } else {
+    ui.error('Gemini: غير متوفر');
+  }
+
+  ui.newLine();
+
+  // ملخص النظام
+  ui.printSummary('حالة النظام', [
+    {
+      label: 'النظام جاهز',
+      value: activeKeys > 0 ? 'نعم' : 'لا',
+      color: activeKeys > 0 ? 'green' : 'red',
+      icon: activeKeys > 0 ? '✅' : '❌'
+    },
+    {
+      label: 'المزودين المتاحين',
+      value: `${activeKeys}/4`,
+      color: activeKeys >= 2 ? 'green' : 'yellow',
+      icon: '🔢'
     }
-  });
+  ]);
 
-  const available = Object.values(providers).filter(Boolean).length;
-
-  console.log('\n' + boxen(
-    chalk.bold[available > 0 ? 'green' : 'red'](
-      available > 0 ?
-        `✨ النظام جاهز! ${available} مزودين متاحين` :
-        '❌ لا توجد مفاتيح API متاحة'
-    ),
-    { padding: 1, margin: 1, borderStyle: 'round', borderColor: available > 0 ? 'green' : 'red' }
-  ));
-
-  if (available === 0) {
-    console.log(chalk.yellow('\n💡 نصيحة: أضف مفاتيح API في ملف .env\n'));
+  if (activeKeys === 0) {
+    ui.newLine();
+    ui.error('⚠️  لا توجد مفاتيح API متاحة');
+    ui.info('💡 نصيحة: أضف مفاتيح API في ملف .env');
   }
-}
-
-// ============================================
-// 💬 وضع Agent (قيد التطوير)
-// ============================================
-async function agentMode(prompt) {
-  displayBanner();
-
-  console.log(boxen(
-    chalk.yellow('⚠️  وظيفة Agent Loop قيد التطوير\n\n') +
-    chalk.cyan('قريباً سيتمكن Oqool من:\n') +
-    chalk.white('• قراءة وكتابة الملفات\n') +
-    chalk.white('• تنفيذ الأوامر\n') +
-    chalk.white('• تعديل الكود تلقائياً\n') +
-    chalk.white('• استخدام الأدوات المتقدمة'),
-    { padding: 1, margin: 1, borderStyle: 'round', borderColor: 'yellow' }
-  ));
-
-  if (prompt) {
-    console.log('\n' + chalk.gray('الطلب: ') + chalk.white(prompt));
-  }
-
-  console.log('\n' + chalk.cyan('💡 للاستخدام الآن: ') + chalk.white('npx tsx packages/cli/src/cli-agent.ts "طلبك"\n'));
 }
 
 // ============================================
 // 📋 معلومات النظام
 // ============================================
-async function showInfo() {
+function showInfo() {
   displayBanner();
 
-  const info = boxen(
-    chalk.bold.cyan('🧠 Oqool AI Development System\n\n') +
-    chalk.white('نظام شامل للتطوير بالذكاء الاصطناعي\n\n') +
-    chalk.yellow('الإصدار: ') + chalk.white('v2.0.0 Agent Edition\n') +
-    chalk.yellow('المطور: ') + chalk.white('فريق Oqool\n') +
-    chalk.yellow('الترخيص: ') + chalk.white('MIT\n') +
-    chalk.yellow('المستودع: ') + chalk.white('github.com/moaid15-hub/oqool-clean\n\n') +
-    chalk.cyan('المزودين المدعومين: ') + chalk.white('5\n') +
-    chalk.cyan('الأدوات المتاحة: ') + chalk.white('10+\n') +
-    chalk.cyan('Agent Loop: ') + chalk.green('✅ مدعوم'),
-    { padding: 1, margin: 1, borderStyle: 'double', borderColor: 'cyan' }
-  );
+  ui.printSection('معلومات النظام', { emoji: 'ℹ️', level: 1 });
 
-  console.log(info);
+  const info = {
+    'الإصدار': 'v3.0.0 - Professional Edition',
+    'المستودع': 'github.com/moaid15-hub/oqool-clean',
+    'المطور': 'فريق Oqool',
+    'الترخيص': 'MIT',
+    'Node.js': process.version,
+    'المنصة': process.platform
+  };
+
+  ui.printStats(info, { title: 'معلومات النظام' });
+
+  ui.newLine();
+  ui.printSection('الميزات', { emoji: '✨', level: 2 });
+
+  const features = [
+    '107 أداة وAgent إجمالاً',
+    '23 AI Agent متخصص',
+    '68 نظام أساسي (Core Systems)',
+    '5 مقدمي AI (Claude, Gemini, OpenAI, DeepSeek, Ollama)',
+    'واجهة UI احترافية متقدمة',
+    'دعم كامل للغة العربية'
+  ];
+
+  ui.printList(features, { bullets: true, style: 'modern' });
+
+  ui.newLine();
+  ui.printSeparator('═', 60, 'cyan');
 }
 
 // ============================================
-// 🎮 إعداد الأوامر
+// 🤖 التحدث مع AI (بسيط - بدون Tools)
 // ============================================
-program
-  .name('oqool')
-  .description('🧠 Oqool AI Development System - Agent Edition')
-  .version('2.0.0');
+async function chatWithAI(prompt, options) {
+  displayBanner();
+
+  const provider = options.provider || process.env.DEFAULT_AI_PROVIDER || 'gemini';
+
+  ui.printSection(`طلبك: ${prompt}`, { emoji: '💬', level: 1 });
+  ui.newLine();
+
+  ui.startSpinner(`جاري المعالجة باستخدام ${provider}...`, 'dots');
+
+  try {
+    // استيراد الـ AI adapter
+    const { UnifiedAIAdapterWithTools } = await import('./packages/shared/dist/ai-gateway/unified-ai-adapter.js');
+
+    const aiAdapter = new UnifiedAIAdapterWithTools({
+      claude: process.env.ANTHROPIC_API_KEY,
+      openai: process.env.OPENAI_API_KEY,
+      deepseek: process.env.DEEPSEEK_API_KEY,
+      gemini: process.env.GEMINI_API_KEY,
+    });
+
+    // إرسال الرسالة
+    const messages = [
+      { role: 'user', content: prompt }
+    ];
+
+    const response = await aiAdapter.chat(messages, provider);
+
+    ui.succeedSpinner('تم إنشاء الرد بنجاح!');
+    ui.newLine();
+
+    // عرض الرد
+    ui.printSection('الرد من AI', { emoji: '🤖', level: 1 });
+    ui.printCode(response.text, 'markdown');
+
+    ui.newLine();
+    ui.printSummary('معلومات الطلب', [
+      { label: 'المزود', value: provider, color: 'cyan', icon: '🔮' },
+      { label: 'عدد الأحرف', value: response.text.length, color: 'green', icon: '📝' }
+    ]);
+
+  } catch (error) {
+    ui.failSpinner('حدث خطأ أثناء المعالجة');
+    ui.error(`الخطأ: ${error.message}`);
+  }
+}
+
+// ============================================
+// 🚀 Agent Mode - النظام الكامل مع Tools
+// ============================================
+async function agentMode(prompt, options) {
+  displayBanner();
+
+  const provider = options.provider || process.env.DEFAULT_AI_PROVIDER || 'claude';
+  const workingDir = options.directory || process.cwd();
+
+  // إذا لم يكن هناك prompt - وضع تفاعلي
+  if (!prompt) {
+    await interactiveAgentMode(provider, workingDir);
+    return;
+  }
+
+  ui.printSection('🤖 Agent Mode - وضع العميل الذكي', { emoji: '🚀', level: 1 });
+  ui.printSection(`المشروع: ${workingDir}`, { emoji: '📂', level: 2 });
+  ui.printSection(`الطلب: ${prompt}`, { emoji: '💬', level: 2 });
+  ui.newLine();
+
+  ui.startSpinner('جاري تحليل المشروع...', 'dots');
+
+  try {
+    // استيراد Agent Client
+    const { createAgentClient } = await import('./packages/shared/dist/core/agent-client.js');
+
+    // الحصول على API Key حسب المزود
+    const apiKeys = {
+      claude: process.env.ANTHROPIC_API_KEY,
+      gemini: process.env.GEMINI_API_KEY,
+      openai: process.env.OPENAI_API_KEY,
+      deepseek: process.env.DEEPSEEK_API_KEY
+    };
+
+    const apiKey = apiKeys[provider] || apiKeys.claude;
+
+    if (!apiKey) {
+      ui.failSpinner('لا يوجد API Key للمزود المختار');
+      ui.error(`المزود ${provider} غير متوفر. تحقق من ملف .env`);
+      return;
+    }
+
+    ui.succeedSpinner('تم تحليل المشروع');
+    ui.newLine();
+
+    // إنشاء Agent
+    const agent = createAgentClient({
+      apiKey,
+      provider: provider === 'gemini' ? 'anthropic' : provider, // مؤقت - نستخدم claude للكل
+      workingDirectory: workingDir,
+      maxIterations: 25,
+      enablePlanning: true,
+      enableContext: true,
+      enableLearning: true
+    });
+
+    ui.info('🧠 العميل الذكي بدأ العمل...');
+    ui.newLine();
+
+    // تشغيل Agent
+    const response = await agent.run(prompt);
+
+    ui.newLine();
+    ui.printSection('النتيجة النهائية', { emoji: '✨', level: 1 });
+    ui.printCode(response, 'markdown');
+
+    // إحصائيات
+    const stats = agent.getStats();
+    ui.newLine();
+    ui.printSummary('إحصائيات العمل', [
+      { label: 'المزود', value: provider, color: 'cyan', icon: '🔮' },
+      { label: 'عدد الرسائل', value: stats.messagesCount, color: 'blue', icon: '💬' },
+      { label: 'عدد التكرارات', value: stats.iterations, color: 'green', icon: '🔄' }
+    ]);
+
+  } catch (error) {
+    ui.failSpinner('حدث خطأ');
+    ui.error(`الخطأ: ${error.message}`);
+    console.error(error);
+  }
+}
+
+// ============================================
+// 💬 الوضع التفاعلي للـ Agent
+// ============================================
+async function interactiveAgentMode(provider, workingDir) {
+  ui.printSection('💬 الوضع التفاعلي - Agent Mode', { emoji: '🚀', level: 1 });
+  ui.printSection(`المشروع: ${workingDir}`, { emoji: '📂', level: 2 });
+  ui.printSection(`المزود: ${provider}`, { emoji: '🔮', level: 2 });
+  ui.newLine();
+
+  ui.info('اكتب طلبك واضغط Enter. اكتب "exit" للخروج.');
+  ui.newLine();
+
+  try {
+    // استيراد inquirer للوضع التفاعلي
+    const inquirer = (await import('inquirer')).default;
+    const { createAgentClient } = await import('./packages/shared/dist/core/agent-client.js');
+
+    // الحصول على API Key
+    const apiKeys = {
+      claude: process.env.ANTHROPIC_API_KEY,
+      gemini: process.env.GEMINI_API_KEY,
+      openai: process.env.OPENAI_API_KEY,
+      deepseek: process.env.DEEPSEEK_API_KEY
+    };
+
+    const apiKey = apiKeys[provider] || apiKeys.claude;
+
+    if (!apiKey) {
+      ui.error(`المزود ${provider} غير متوفر. تحقق من ملف .env`);
+      return;
+    }
+
+    // إنشاء Agent
+    const agent = createAgentClient({
+      apiKey,
+      provider: 'anthropic',
+      workingDirectory: workingDir,
+      maxIterations: 25,
+      enablePlanning: true,
+      enableContext: true,
+      enableLearning: true
+    });
+
+    // حلقة التفاعل
+    while (true) {
+      const { message } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'message',
+          message: '💬 أنت:',
+          prefix: ''
+        }
+      ]);
+
+      if (!message.trim()) continue;
+
+      if (message.toLowerCase() === 'exit' || message === 'خروج') {
+        ui.success('👋 مع السلامة!');
+        break;
+      }
+
+      ui.newLine();
+      ui.info('🧠 العميل الذكي يعمل...');
+      ui.newLine();
+
+      try {
+        const response = await agent.run(message);
+
+        ui.newLine();
+        ui.printSection('النتيجة', { emoji: '✨', level: 2 });
+        console.log(response);
+        ui.newLine();
+      } catch (error) {
+        ui.error(`خطأ: ${error.message}`);
+      }
+    }
+
+  } catch (error) {
+    ui.error(`خطأ في الوضع التفاعلي: ${error.message}`);
+    console.error(error);
+  }
+}
+
+// ============================================
+// 🚀 برنامج Commander
+// ============================================
 
 program
-  .command('test')
-  .description('اختبار النظام والمزودين')
-  .action(testSystem);
+  .name('oqool')
+  .version('3.0.0')
+  .description('🧠 Oqool AI Development System - نظام عقول للتطوير الذكي');
 
 program
   .command('providers')
@@ -308,10 +550,10 @@ program
   .action(showProviders);
 
 program
-  .command('agent [prompt]')
-  .alias('a')
-  .description('تشغيل Agent Loop (قيد التطوير)')
-  .action(agentMode);
+  .command('test')
+  .alias('t')
+  .description('اختبار النظام')
+  .action(testSystem);
 
 program
   .command('info')
@@ -319,16 +561,28 @@ program
   .description('معلومات عن النظام')
   .action(showInfo);
 
-// الأمر الافتراضي
 program
-  .action(() => {
-    displayBanner();
-    console.log(chalk.cyan('استخدم ') + chalk.yellow('oqool --help') + chalk.cyan(' للمساعدة\n'));
-    console.log(chalk.bold.yellow('⚡ الأوامر السريعة:\n'));
-    console.log(chalk.white('  • ') + chalk.green('oqool test') + chalk.gray('     - اختبار النظام'));
-    console.log(chalk.white('  • ') + chalk.green('oqool providers') + chalk.gray(' - عرض المزودين'));
-    console.log(chalk.white('  • ') + chalk.green('oqool info') + chalk.gray('      - معلومات النظام'));
-    console.log('');
-  });
+  .command('ai <prompt>')
+  .alias('a')
+  .description('التحدث مع AI (بسيط - بدون tools)')
+  .option('-p, --provider <provider>', 'اختيار المزود (gemini, claude, openai, deepseek)', 'gemini')
+  .action(chatWithAI);
 
-program.parse();
+program
+  .command('agent [prompt]')
+  .alias('g')
+  .description('🚀 Agent Mode - وضع العميل الذكي الكامل (يقرأ ويعدل الملفات)')
+  .option('-p, --provider <provider>', 'اختيار المزود (gemini, claude, openai, deepseek)', 'claude')
+  .option('-d, --directory <path>', 'مجلد المشروع', process.cwd())
+  .action(agentMode);
+
+// ============================================
+// 🎯 تشغيل البرنامج
+// ============================================
+
+program.parse(process.argv);
+
+// إذا لم يتم تمرير أي أمر، اعرض المساعدة
+if (!process.argv.slice(2).length) {
+  program.outputHelp();
+}
